@@ -1,0 +1,47 @@
+<Solution>
+  <Folder Name="/docker/" />
+  <Folder Name="/docker/Auth/">
+    <File Path=".dockerignore" />
+    <File Path="Auth.Api/Dockerfile" />
+  </Folder>
+  <Folder Name="/docker/Billing/">
+    <File Path=".dockerignore" />
+    <File Path="Billing.Api/Dockerfile" />
+  </Folder>
+  <Folder Name="/docker/CRM/">
+    <File Path=".dockerignore" />
+    <File Path="CRM.Api/Dockerfile" />
+  </Folder>
+  <Folder Name="/docker/Gateway/">
+    <File Path=".dockerignore" />
+    <File Path="Api/Dockerfile" />
+  </Folder>
+  <Folder Name="/kubernetes/" />
+  <Folder Name="/kubernetes/Auth/" />
+  <Folder Name="/kubernetes/Billing/" />
+  <Folder Name="/kubernetes/CRM/" />
+  <Folder Name="/kubernetes/Gateway/" />
+  <Folder Name="/src/" />
+  <Folder Name="/src/Auth/">
+    <Project Path="Auth.Api/Auth.Api.csproj" />
+    <Project Path="Auth.Data/Auth.Data.csproj" />
+    <Project Path="Auth.Domain/Auth.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Billing/">
+    <Project Path="Billing.Api/Billing.Api.csproj" />
+    <Project Path="Billing.Data/Billing.Data.csproj" />
+    <Project Path="Billing.Domain/Billing.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/CRM/">
+    <Project Path="CRM.Api/CRM.Api.csproj" />
+    <Project Path="CRM.Data/CRM.Data.csproj" />
+    <Project Path="CRM.Domain/CRM.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Gateway/">
+    <Project Path="Api/Gateway.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/" />
+  <Folder Name="/src/Shared/BuildingBlocks/" />
+  <Folder Name="/src/Shared/Contracts/" />
+  <Folder Name="/src/Shared/Kernel/" />
+</Solution>
