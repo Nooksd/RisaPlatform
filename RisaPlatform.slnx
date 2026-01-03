@@ -16,11 +16,18 @@
     <File Path=".dockerignore" />
     <File Path="Api/Dockerfile" />
   </Folder>
-  <Folder Name="/kubernetes/" />
-  <Folder Name="/kubernetes/Auth/" />
-  <Folder Name="/kubernetes/Billing/" />
-  <Folder Name="/kubernetes/CRM/" />
-  <Folder Name="/kubernetes/Gateway/" />
+  <Folder Name="/k8s/" />
+  <Folder Name="/k8s/Auth/" />
+  <Folder Name="/k8s/Billing/" />
+  <Folder Name="/k8s/CRM/" />
+  <Folder Name="/k8s/Gateway/" />
+  <Folder Name="/k8s/RabbitMQ/">
+    <File Path="configmap.yaml" />
+    <File Path="definitions.json" />
+    <File Path="deployment.yaml" />
+    <File Path="namespace.yaml" />
+    <File Path="service.yaml" />
+  </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Auth/">
     <Project Path="Auth.Api/Auth.Api.csproj" />
@@ -38,10 +45,11 @@
     <Project Path="CRM.Domain/CRM.Domain.csproj" />
   </Folder>
   <Folder Name="/src/Gateway/">
-    <Project Path="Api/Gateway.Api.csproj" />
+    <Project Path="Gateway.Api/Gateway.Api.csproj" Id="2f1f7bf0-afb9-4e36-a790-5747c4e0e9e3" />
   </Folder>
-  <Folder Name="/src/Shared/" />
-  <Folder Name="/src/Shared/BuildingBlocks/" />
-  <Folder Name="/src/Shared/Contracts/" />
-  <Folder Name="/src/Shared/Kernel/" />
+  <Folder Name="/src/Shared/">
+    <Project Path="Shared.BuildingBlocks/Shared.BuildingBlocks.csproj" Id="16d719c8-ff1b-4968-8a0a-61927c91ba87" />
+    <Project Path="Shared.Contracts/Shared.Contracts.csproj" Id="04589b25-5890-43a0-a97a-f34fe518bf38" />
+    <Project Path="Shared.Kernel/Shared.Kernel.csproj" Id="570d2371-e7d6-4ddf-ad1b-cabc0fdaa940" />
+  </Folder>
 </Solution>
