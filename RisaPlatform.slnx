@@ -21,12 +21,18 @@
   <Folder Name="/k8s/Billing/" />
   <Folder Name="/k8s/CRM/" />
   <Folder Name="/k8s/Gateway/" />
+  <Folder Name="/k8s/Postgres/">
+    <File Path="postgres-namespace.yaml" />
+    <File Path="postgres-persistentvolumeclaims.yaml" />
+    <File Path="postgres-secret.yaml" />
+    <File Path="postgres-service.yaml" />
+    <File Path="postgres-statefulset.yaml" />
+  </Folder>
   <Folder Name="/k8s/RabbitMQ/">
-    <File Path="configmap.yaml" />
-    <File Path="definitions.json" />
-    <File Path="deployment.yaml" />
-    <File Path="namespace.yaml" />
-    <File Path="service.yaml" />
+    <File Path="rabbitmq-configmap.yaml" />
+    <File Path="rabbitmq-deployment.yaml" />
+    <File Path="rabbitmq-namespace.yaml" />
+    <File Path="rabbitmq-service.yaml" />
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Auth/">
