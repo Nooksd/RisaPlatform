@@ -15,7 +15,6 @@ public sealed class RabbitMqConnection : IAsyncDisposable
             Port = options.Port,
             UserName = options.Username,
             Password = options.Password
-            // Removido: DispatchConsumersAsync = true
         };
 
         Connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();

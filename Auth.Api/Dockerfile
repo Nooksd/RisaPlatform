@@ -1,30 +1,34 @@
-# Acesse https://aka.ms/customizecontainer para saber como personalizar seu contêiner de depuração e como o Visual Studio usa este Dockerfile para criar suas imagens para uma depuração mais rápida.
-
-# Esta fase é usada durante a execução no VS no modo rápido (Padrão para a configuração de Depuração)
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
-USER $APP_UID
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
-
-# Esta fase é usada para compilar o projeto de serviço
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-ARG BUILD_CONFIGURATION=Release
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ["Auth.Api/Auth.Api.csproj", "Auth.Api/"]
-RUN dotnet restore "./Auth.Api/Auth.Api.csproj"
-COPY . .
-WORKDIR "/src/Auth.Api"
-RUN dotnet build "./Auth.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# Esta fase é usada para publicar o projeto de serviço a ser copiado para a fase final
+# Copy shared projects first
+COPY ["src/Shared/", "Shared/"]
+
+# Copy Auth projects
+COPY ["src/Auth/Auth.Domain/", "Auth/Auth.Domain/"]
+COPY ["src/Auth/Auth.Data/", "Auth/Auth.Data/"]
+COPY ["src/Auth/Auth.Api/", "Auth/Auth.Api/"]
+
+# Restore
+RUN dotnet restore "Auth/Auth.Api/Auth.Api.csproj"
+
+# Build
+RUN dotnet build "Auth/Auth.Api/Auth.Api.csproj" -c Release -o /app/build
+
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Auth.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Auth/Auth.Api/Auth.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Esta fase é usada na produção ou quando executada no VS no modo normal (padrão quando não está usando a configuração de Depuração)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
 ENTRYPOINT ["dotnet", "Auth.Api.dll"]

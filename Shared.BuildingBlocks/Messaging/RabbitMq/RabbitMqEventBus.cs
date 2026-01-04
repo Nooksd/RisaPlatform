@@ -16,9 +16,13 @@ public sealed class RabbitMqEventBus(RabbitMqConnection connection, RabbitMqOpti
     {
         var body = JsonSerializer.SerializeToUtf8Bytes(@event);
 
+        var routingKey = typeof(TEvent).Name
+            .Replace("Event", "")
+            .ToLowerInvariant();
+
         await _channel.BasicPublishAsync(
             exchange: _options.Exchange,
-            routingKey: typeof(TEvent).Name,
+            routingKey: routingKey,
             body: body,
             cancellationToken: ct);
     }

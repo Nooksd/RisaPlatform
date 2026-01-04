@@ -1,7 +1,6 @@
 <Solution>
   <Folder Name="/docker/" />
   <Folder Name="/docker/Auth/">
-    <File Path=".dockerignore" />
     <File Path="Auth.Api/Dockerfile" />
   </Folder>
   <Folder Name="/docker/Billing/">

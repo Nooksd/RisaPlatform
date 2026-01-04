@@ -8,4 +8,5 @@ public sealed class RabbitMqOptions
     public string Password { get; init; } = default!;
     public string Exchange { get; init; } = "billing.events";
     public string Queue { get; init; } = default!;
+    public string DeadLetterExchange { get; init; } = "billing.events.dlx";
 }

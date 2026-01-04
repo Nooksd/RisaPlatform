@@ -44,6 +44,13 @@ data:
           "type": "topic",
           "durable": true,
           "auto_delete": false
+        },
+        {
+          "name": "billing.events.dlx",
+          "vhost": "/",
+          "type": "topic",
+          "durable": true,
+          "auto_delete": false
         }
       ],
       "queues": [
@@ -51,7 +58,41 @@ data:
           "name": "gateway.billing",
           "vhost": "/",
           "durable": true,
-          "auto_delete": false
+          "auto_delete": false,
+          "arguments": {
+            "x-dead-letter-exchange": "billing.events.dlx",
+            "x-dead-letter-routing-key": "gateway.billing.failed"
+          }
+        },
+        {
+          "name": "gateway.billing.dlq",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {
+            "x-message-ttl": 86400000,
+            "x-max-length": 10000
+          }
+        },
+        {
+          "name": "auth.billing",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {
+            "x-dead-letter-exchange": "billing.events.dlx",
+            "x-dead-letter-routing-key": "auth.billing.failed"
+          }
+        },
+        {
+          "name": "auth.billing.dlq",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {
+            "x-message-ttl": 86400000,
+            "x-max-length": 10000
+          }
         }
       ],
       "bindings": [
@@ -60,7 +101,42 @@ data:
           "vhost": "/",
           "destination": "gateway.billing",
           "destination_type": "queue",
-          "routing_key": "tenant.payment.*"
+          "routing_key": "TenantPaymentConfirmedEvent"
+        },
+        {
+          "source": "billing.events",
+          "vhost": "/",
+          "destination": "gateway.billing",
+          "destination_type": "queue",
+          "routing_key": "TenantGracePeriodGrantedEvent"
+        },
+        {
+          "source": "billing.events",
+          "vhost": "/",
+          "destination": "auth.billing",
+          "destination_type": "queue",
+          "routing_key": "TenantPaymentConfirmedEvent"
+        },
+        {
+          "source": "billing.events",
+          "vhost": "/",
+          "destination": "auth.billing",
+          "destination_type": "queue",
+          "routing_key": "TenantGracePeriodGrantedEvent"
+        },
+        {
+          "source": "billing.events.dlx",
+          "vhost": "/",
+          "destination": "gateway.billing.dlq",
+          "destination_type": "queue",
+          "routing_key": "gateway.billing.failed"
+        },
+        {
+          "source": "billing.events.dlx",
+          "vhost": "/",
+          "destination": "auth.billing.dlq",
+          "destination_type": "queue",
+          "routing_key": "auth.billing.failed"
         }
       ]
     }
