@@ -15,13 +15,12 @@ public sealed class TenantUser
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? LastLoginAt { get; private set; }
-    public Guid CreatedBy { get; private set; } // ID de quem criou (TenantAccount ou outro TenantUser)
+    public Guid CreatedBy { get; private set; }
 
-    // Navigation
     public ICollection<ModuleAccess> ModuleAccesses { get; private set; } = new List<ModuleAccess>();
     public ICollection<RefreshToken> RefreshTokens { get; private set; } = new List<RefreshToken>();
 
-    private TenantUser() { } // EF Core
+    private TenantUser() { }
 
     public static TenantUser Create(
         Guid tenantId,
@@ -45,7 +44,7 @@ public sealed class TenantUser
 
         foreach (var (module, level) in moduleAccesses.AccessLevels)
         {
-            if (level > 0) // Só adiciona se tiver algum acesso
+            if (level > 0)
             {
                 user.ModuleAccesses.Add(ModuleAccess.Create(user.Id, module, level));
             }

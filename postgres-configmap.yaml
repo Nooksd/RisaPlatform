@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: database
+data:
+  postgresql.conf: |
+    max_connections = 200
+    shared_buffers = 256MB
+    
+    wal_level = replica
+    max_wal_senders = 3
+
+    effective_cache_size = 1GB
+    maintenance_work_mem = 64MB
+    checkpoint_completion_target = 0.9
+    wal_buffers = 16MB
+    default_statistics_target = 100
+    random_page_cost = 1.1
+    effective_io_concurrency = 200
+    work_mem = 5MB
+    min_wal_size = 1GB
+    max_wal_size = 4GB
+
+    logging_collector = on
+    log_directory = 'log'
+    log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+    log_statement = 'mod'
+    log_duration = off
+    log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+    log_min_duration_statement = 1000
+
+    autovacuum = on
+    autovacuum_max_workers = 3
+
+  init.sql: |
+    -- Este script roda na primeira inicialização
+    -- Os databases serão criados automaticamente pelas aplicações
+    
+    -- Cria extensões úteis
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    CREATE EXTENSION IF NOT EXISTS "pg_trgm";

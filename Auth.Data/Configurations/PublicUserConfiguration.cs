@@ -75,10 +75,8 @@ public sealed class PublicUserConfiguration : IEntityTypeConfiguration<PublicUse
         builder.Property(x => x.DeletedBy)
             .HasColumnName("deleted_by");
 
-        // Soft delete global query filter
         builder.HasQueryFilter(x => !x.IsDeleted);
 
-        // Índices
         builder.HasIndex(x => new { x.TenantId, x.Module, x.Email })
             .IsUnique()
             .HasDatabaseName("ix_public_users_tenant_module_email");
@@ -92,10 +90,6 @@ public sealed class PublicUserConfiguration : IEntityTypeConfiguration<PublicUse
         builder.HasIndex(x => x.IsDeleted)
             .HasDatabaseName("ix_public_users_is_deleted");
 
-        // Relacionamentos
-        builder.HasMany(x => x.RefreshTokens)
-            .WithOne()
-            .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.Ignore(x => x.RefreshTokens);
     }
 }

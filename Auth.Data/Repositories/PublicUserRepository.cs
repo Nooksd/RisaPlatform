@@ -12,14 +12,14 @@ public sealed class PublicUserRepository(AuthDbContext context) : IPublicUserRep
     public async Task<PublicUser?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         return await _context.PublicUsers
-            .Include(x => x.RefreshTokens)
+            
             .FirstOrDefaultAsync(x => x.Id == id, ct);
     }
 
     public async Task<PublicUser?> GetByEmailAsync(Guid tenantId, string module, string email, CancellationToken ct = default)
     {
         return await _context.PublicUsers
-            .Include(x => x.RefreshTokens)
+            
             .FirstOrDefaultAsync(x =>
                 x.TenantId == tenantId &&
                 x.Module == module &&
@@ -29,7 +29,7 @@ public sealed class PublicUserRepository(AuthDbContext context) : IPublicUserRep
     public async Task<PublicUser?> GetByOAuthAsync(Guid tenantId, string module, string oauthId, OAuthProvider provider, CancellationToken ct = default)
     {
         return await _context.PublicUsers
-            .Include(x => x.RefreshTokens)
+            
             .FirstOrDefaultAsync(x =>
                 x.TenantId == tenantId &&
                 x.Module == module &&

@@ -19,8 +19,8 @@ public static class ServiceCollectionExtensions
         {
             options.UseNpgsql(connectionString, npgsql =>
             {
-                npgsql.MigrationsHistoryTable("__ef_migrations_history", "auth");
                 npgsql.EnableRetryOnFailure(3);
+                npgsql.MigrationsHistoryTable("__ef_migrations_history", "auth");
             });
 
             options.EnableSensitiveDataLogging(false);

@@ -12,7 +12,7 @@ public sealed class TenantUserRepository(AuthDbContext context) : ITenantUserRep
     {
         return await _context.TenantUsers
             .Include(x => x.ModuleAccesses)
-            .Include(x => x.RefreshTokens)
+            
             .FirstOrDefaultAsync(x => x.Id == id, ct);
     }
 
@@ -20,7 +20,7 @@ public sealed class TenantUserRepository(AuthDbContext context) : ITenantUserRep
     {
         return await _context.TenantUsers
             .Include(x => x.ModuleAccesses)
-            .Include(x => x.RefreshTokens)
+            
             .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.Email == email, ct);
     }
 

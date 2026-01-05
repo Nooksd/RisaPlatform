@@ -8,7 +8,6 @@ public sealed class AuthMappingProfile : Profile
 {
     public AuthMappingProfile()
     {
-        // TenantAccount → UserInfo
         CreateMap<TenantAccount, UserInfo>()
             .ConstructUsing(src => new UserInfo(
                 src.Id,
@@ -18,7 +17,6 @@ public sealed class AuthMappingProfile : Profile
                 src.TenantId,
                 GetFullModuleAccess()));
 
-        // TenantUser → UserInfo
         CreateMap<TenantUser, UserInfo>()
             .ConstructUsing(src => new UserInfo(
                 src.Id,
@@ -28,7 +26,6 @@ public sealed class AuthMappingProfile : Profile
                 src.TenantId,
                 src.ModuleAccesses.ToDictionary(ma => ma.Module, ma => ma.AccessLevel)));
 
-        // TenantUser → TenantUserResponse
         CreateMap<TenantUser, TenantUserResponse>()
             .ConstructUsing(src => new TenantUserResponse(
                 src.Id,
@@ -41,7 +38,6 @@ public sealed class AuthMappingProfile : Profile
                 src.CreatedBy,
                 src.ModuleAccesses.ToDictionary(ma => ma.Module, ma => ma.AccessLevel)));
 
-        // TenantUser → TenantUserDetailResponse
         CreateMap<TenantUser, TenantUserDetailResponse>()
             .ConstructUsing(src => new TenantUserDetailResponse(
                 src.Id,
@@ -52,18 +48,8 @@ public sealed class AuthMappingProfile : Profile
                 src.CreatedAt,
                 src.LastLoginAt,
                 src.CreatedBy,
-                src.ModuleAccesses.ToDictionary(ma => ma.Module, ma => ma.AccessLevel),
-                src.RefreshTokens
-                    .Where(rt => !rt.IsRevoked && !rt.IsExpired)
-                    .Select(rt => new RefreshTokenInfo(
-                        rt.Id,
-                        rt.CreatedAt,
-                        rt.ExpiresAt,
-                        rt.IpAddress,
-                        rt.UserAgent))
-                    .ToList()));
+                src.ModuleAccesses.ToDictionary(ma => ma.Module, ma => ma.AccessLevel)));
 
-        // PublicUser → UserInfo
         CreateMap<PublicUser, UserInfo>()
             .ConstructUsing(src => new UserInfo(
                 src.Id,
@@ -71,9 +57,8 @@ public sealed class AuthMappingProfile : Profile
                 src.Name,
                 "PublicUser",
                 src.TenantId,
-                new Dictionary<string, int> { { src.Module, 1 } })); // Public users only have view access to their module
+                new Dictionary<string, int> { { src.Module, 1 } }));
 
-        // RefreshToken → RefreshTokenInfo
         CreateMap<RefreshToken, RefreshTokenInfo>()
             .ConstructUsing(src => new RefreshTokenInfo(
                 src.Id,

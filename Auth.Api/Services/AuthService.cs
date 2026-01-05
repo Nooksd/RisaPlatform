@@ -12,19 +12,19 @@ namespace Auth.Api.Services;
 public interface IAuthService
 {
     // Tenant Account
-    Task<AuthResult<AuthResponse>> RegisterTenantAsync(RegisterTenantRequest request, CancellationToken ct = default);
+    Task<AuthResult<AuthResponse>> RegisterTenantAsync(RegisterTenantRequest request, string ipAddress, string userAgent, CancellationToken ct = default);
     Task<AuthResult<AuthResponse>> RegisterTenantWithOAuthAsync(RegisterTenantWithOAuthRequest request, CancellationToken ct = default);
-    Task<AuthResult<AuthResponse>> LoginTenantAsync(LoginRequest request, CancellationToken ct = default);
-    Task<AuthResult<AuthResponse>> LoginTenantWithOAuthAsync(LoginWithOAuthRequest request, CancellationToken ct = default);
+    Task<AuthResult<AuthResponse>> LoginTenantAsync(LoginRequest request, string ipAddress, string userAgent, CancellationToken ct = default);
+    Task<AuthResult<AuthResponse>> LoginTenantWithOAuthAsync(LoginWithOAuthRequest request, string ipAddress, string userAgent, CancellationToken ct = default);
 
     // Tenant User
-    Task<AuthResult<AuthResponse>> LoginTenantUserAsync(LoginRequest request, CancellationToken ct = default);
+    Task<AuthResult<AuthResponse>> LoginTenantUserAsync(LoginRequest request, string ipAddress, string userAgent, CancellationToken ct = default);
 
     // Public User
     Task<AuthResult<AuthResponse>> RegisterPublicUserAsync(Guid tenantId, RegisterPublicUserRequest request, CancellationToken ct = default);
     Task<AuthResult<AuthResponse>> RegisterPublicUserWithOAuthAsync(Guid tenantId, RegisterPublicUserWithOAuthRequest request, CancellationToken ct = default);
-    Task<AuthResult<AuthResponse>> LoginPublicUserAsync(Guid tenantId, LoginPublicUserRequest request, CancellationToken ct = default);
-    Task<AuthResult<AuthResponse>> LoginPublicUserWithOAuthAsync(Guid tenantId, LoginPublicUserWithOAuthRequest request, CancellationToken ct = default);
+    Task<AuthResult<AuthResponse>> LoginPublicUserAsync(Guid tenantId, LoginPublicUserRequest request, string ipAddress, string userAgent, CancellationToken ct = default);
+    Task<AuthResult<AuthResponse>> LoginPublicUserWithOAuthAsync(Guid tenantId, LoginPublicUserWithOAuthRequest request, string ipAddress, string userAgent, CancellationToken ct = default);
 
     // Common
     Task<AuthResult<AuthResponse>> RefreshTokenAsync(RefreshTokenRequest request, CancellationToken ct = default);
@@ -64,7 +64,7 @@ public sealed class AuthService : IAuthService
 
     // ===== TENANT ACCOUNT =====
 
-    public async Task<AuthResult<AuthResponse>> RegisterTenantAsync(RegisterTenantRequest request, CancellationToken ct = default)
+    public async Task<AuthResult<AuthResponse>> RegisterTenantAsync(RegisterTenantRequest request, string ipAddress, string userAgent, CancellationToken ct = default)
     {
         var email = Email.Create(request.Email);
 
@@ -77,7 +77,7 @@ public sealed class AuthService : IAuthService
         var account = TenantAccount.CreateWithPassword(tenantId, email, passwordHash, request.Name);
         await _tenantAccountRepo.AddAsync(account, ct);
 
-        return await CreateAuthResponse(account, request.IpAddress, request.UserAgent, ct);
+        return await CreateAuthResponse(account, ipAddress, userAgent, ct);
     }
 
     public async Task<AuthResult<AuthResponse>> RegisterTenantWithOAuthAsync(RegisterTenantWithOAuthRequest request, CancellationToken ct = default)
@@ -103,7 +103,7 @@ public sealed class AuthService : IAuthService
         return await CreateAuthResponse(account, null, null, ct);
     }
 
-    public async Task<AuthResult<AuthResponse>> LoginTenantAsync(LoginRequest request, CancellationToken ct = default)
+    public async Task<AuthResult<AuthResponse>> LoginTenantAsync(LoginRequest request, string ipAddress, string userAgent, CancellationToken ct = default)
     {
         var account = await _tenantAccountRepo.GetByEmailAsync(request.Email, ct);
 
@@ -119,10 +119,10 @@ public sealed class AuthService : IAuthService
         account.UpdateLastLogin();
         await _tenantAccountRepo.UpdateAsync(account, ct);
 
-        return await CreateAuthResponse(account, request.IpAddress, request.UserAgent, ct);
+        return await CreateAuthResponse(account, ipAddress, userAgent, ct);
     }
 
-    public async Task<AuthResult<AuthResponse>> LoginTenantWithOAuthAsync(LoginWithOAuthRequest request, CancellationToken ct = default)
+    public async Task<AuthResult<AuthResponse>> LoginTenantWithOAuthAsync(LoginWithOAuthRequest request, string ipAddress, string userAgent, CancellationToken ct = default)
     {
         var oauthInfo = await _oauthService.ValidateGoogleTokenAsync(request.IdToken, ct);
         if (oauthInfo is null || !oauthInfo.EmailVerified)
@@ -139,7 +139,7 @@ public sealed class AuthService : IAuthService
         account.UpdateLastLogin();
         await _tenantAccountRepo.UpdateAsync(account, ct);
 
-        return await CreateAuthResponse(account, request.IpAddress, request.UserAgent, ct);
+        return await CreateAuthResponse(account, ipAddress, userAgent, ct);
     }
 
     private async Task<AuthResponse> CreateAuthResponse(TenantAccount account, string? ipAddress, string? userAgent, CancellationToken ct)
@@ -170,7 +170,7 @@ public sealed class AuthService : IAuthService
         return new AuthResponse(accessToken, refreshToken, token.ExpiresAt, userInfo);
     }
 
-    public async Task<AuthResult<AuthResponse>> LoginTenantUserAsync(LoginRequest request, CancellationToken ct = default)
+    public async Task<AuthResult<AuthResponse>> LoginTenantUserAsync(LoginRequest request, string ipAddress, string userAgent, CancellationToken ct = default)
     {
         // Precisa buscar em todos os tenants já que não temos o tenantId no request
         // Alternativa: passar tenantId no request ou ter domínio único por tenant
@@ -223,7 +223,7 @@ public sealed class AuthService : IAuthService
         return await CreateAuthResponse(user, null, null, ct);
     }
 
-    public async Task<AuthResult<AuthResponse>> LoginPublicUserAsync(Guid tenantId, LoginPublicUserRequest request, CancellationToken ct = default)
+    public async Task<AuthResult<AuthResponse>> LoginPublicUserAsync(Guid tenantId, LoginPublicUserRequest request, string ipAddress, string userAgent, CancellationToken ct = default)
     {
         var user = await _publicUserRepo.GetByEmailAsync(tenantId, request.Module, request.Email, ct);
 
@@ -242,10 +242,10 @@ public sealed class AuthService : IAuthService
         user.UpdateLastLogin();
         await _publicUserRepo.UpdateAsync(user, ct);
 
-        return await CreateAuthResponse(user, request.IpAddress, request.UserAgent, ct);
+        return await CreateAuthResponse(user, ipAddress, userAgent, ct);
     }
 
-    public async Task<AuthResult<AuthResponse>> LoginPublicUserWithOAuthAsync(Guid tenantId, LoginPublicUserWithOAuthRequest request, CancellationToken ct = default)
+    public async Task<AuthResult<AuthResponse>> LoginPublicUserWithOAuthAsync(Guid tenantId, LoginPublicUserWithOAuthRequest request, string ipAddress, string userAgent, CancellationToken ct = default)
     {
         var oauthInfo = await _oauthService.ValidateGoogleTokenAsync(request.IdToken, ct);
         if (oauthInfo is null || !oauthInfo.EmailVerified)
@@ -265,7 +265,7 @@ public sealed class AuthService : IAuthService
         user.UpdateLastLogin();
         await _publicUserRepo.UpdateAsync(user, ct);
 
-        return await CreateAuthResponse(user, request.IpAddress, request.UserAgent, ct);
+        return await CreateAuthResponse(user, ipAddress, userAgent, ct);
     }
 
     private async Task<AuthResponse> CreateAuthResponse(TenantUser user, string? ipAddress, string? userAgent, CancellationToken ct)

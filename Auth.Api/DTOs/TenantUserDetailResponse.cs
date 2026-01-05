@@ -9,6 +9,6 @@ public sealed record TenantUserDetailResponse(
     DateTime CreatedAt,
     DateTime? LastLoginAt,
     Guid CreatedBy,
-    Dictionary<string, int> ModuleAccesses,
-    List<RefreshTokenInfo> ActiveSessions);
+    Dictionary<string, int> ModuleAccesses
+    );
 

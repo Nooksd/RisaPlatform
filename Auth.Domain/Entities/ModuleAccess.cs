@@ -13,7 +13,7 @@ public sealed class ModuleAccess
     // Navigation
     public TenantUser TenantUser { get; private set; } = default!;
 
-    private ModuleAccess() { } // EF Core
+    private ModuleAccess() { }
 
     public static ModuleAccess Create(Guid tenantUserId, string module, int accessLevel)
     {

@@ -19,11 +19,10 @@ public sealed class RefreshToken
     public DateTime? RevokedAt { get; private set; }
     public string? RevokedReason { get; private set; }
 
-    // Metadata
     public string? IpAddress { get; private set; }
     public string? UserAgent { get; private set; }
 
-    private RefreshToken() { } // EF Core
+    private RefreshToken() { }
 
     public static RefreshToken Create(
         string token,

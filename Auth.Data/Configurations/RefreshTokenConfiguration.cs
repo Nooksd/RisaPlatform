@@ -54,13 +54,12 @@ public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refresh
 
         builder.Property(x => x.IpAddress)
             .HasColumnName("ip_address")
-            .HasMaxLength(45); // IPv6 max length
+            .HasMaxLength(45);
 
         builder.Property(x => x.UserAgent)
             .HasColumnName("user_agent")
             .HasMaxLength(500);
 
-        // Índices
         builder.HasIndex(x => x.Token)
             .IsUnique()
             .HasDatabaseName("ix_refresh_tokens_token");

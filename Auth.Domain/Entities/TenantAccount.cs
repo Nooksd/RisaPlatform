@@ -21,7 +21,7 @@ public sealed class TenantAccount
 
     public ICollection<RefreshToken> RefreshTokens { get; private set; } = new List<RefreshToken>();
 
-    private TenantAccount() { } // EF Core
+    private TenantAccount() { }
 
     public static TenantAccount CreateWithPassword(
         Guid tenantId,

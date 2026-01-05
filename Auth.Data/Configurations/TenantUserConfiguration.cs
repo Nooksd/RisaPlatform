@@ -57,7 +57,6 @@ public sealed class TenantUserConfiguration : IEntityTypeConfiguration<TenantUse
             .HasColumnName("created_by")
             .IsRequired();
 
-        // Índices
         builder.HasIndex(x => new { x.TenantId, x.Email })
             .IsUnique()
             .HasDatabaseName("ix_tenant_users_tenant_email");
@@ -68,15 +67,11 @@ public sealed class TenantUserConfiguration : IEntityTypeConfiguration<TenantUse
         builder.HasIndex(x => x.CreatedBy)
             .HasDatabaseName("ix_tenant_users_created_by");
 
-        // Relacionamentos
         builder.HasMany(x => x.ModuleAccesses)
             .WithOne(x => x.TenantUser)
             .HasForeignKey(x => x.TenantUserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(x => x.RefreshTokens)
-            .WithOne()
-            .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.Ignore(x => x.RefreshTokens);
     }
 }

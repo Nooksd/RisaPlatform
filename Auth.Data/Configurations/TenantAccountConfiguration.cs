@@ -60,7 +60,6 @@ public sealed class TenantAccountConfiguration : IEntityTypeConfiguration<Tenant
         builder.Property(x => x.LastLoginAt)
             .HasColumnName("last_login_at");
 
-        // Índices
         builder.HasIndex(x => x.Email)
             .IsUnique()
             .HasDatabaseName("ix_tenant_accounts_email");
@@ -72,10 +71,6 @@ public sealed class TenantAccountConfiguration : IEntityTypeConfiguration<Tenant
         builder.HasIndex(x => new { x.OAuthId, x.OAuthProvider })
             .HasDatabaseName("ix_tenant_accounts_oauth");
 
-        // Relacionamentos
-        builder.HasMany(x => x.RefreshTokens)
-            .WithOne()
-            .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.Ignore(x => x.RefreshTokens);
     }
 }

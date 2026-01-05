@@ -24,10 +24,9 @@ public sealed class PublicUser
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
 
-    // Navigation
     public ICollection<RefreshToken> RefreshTokens { get; private set; } = new List<RefreshToken>();
 
-    private PublicUser() { } // EF Core
+    private PublicUser() { }
 
     public static PublicUser CreateWithPassword(
         Guid tenantId,

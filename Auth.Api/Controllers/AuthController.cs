@@ -18,13 +18,10 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("tenant/register")]
     public async Task<IActionResult> RegisterTenant([FromBody] RegisterTenantRequest request, CancellationToken ct)
     {
-        request = request with
-        {
-            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
-            UserAgent = HttpContext.Request.Headers.UserAgent.ToString()
-        };
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
-        var result = await _authService.RegisterTenantAsync(request, ct);
+        var result = await _authService.RegisterTenantAsync(request, ipAddress!, userAgent, ct);
         return result.IsSuccess
             ? Ok(result.Value)
             : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
@@ -42,13 +39,10 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("tenant/login")]
     public async Task<IActionResult> LoginTenant([FromBody] LoginRequest request, CancellationToken ct)
     {
-        request = request with
-        {
-            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
-            UserAgent = HttpContext.Request.Headers.UserAgent.ToString()
-        };
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
-        var result = await _authService.LoginTenantAsync(request, ct);
+        var result = await _authService.LoginTenantAsync(request, ipAddress!, userAgent, ct);
         return result.IsSuccess
             ? Ok(result.Value)
             : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
@@ -57,13 +51,10 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("tenant/login/oauth")]
     public async Task<IActionResult> LoginTenantWithOAuth([FromBody] LoginWithOAuthRequest request, CancellationToken ct)
     {
-        request = request with
-        {
-            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
-            UserAgent = HttpContext.Request.Headers.UserAgent.ToString()
-        };
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
-        var result = await _authService.LoginTenantWithOAuthAsync(request, ct);
+        var result = await _authService.LoginTenantWithOAuthAsync(request, ipAddress!, userAgent, ct);
         return result.IsSuccess
             ? Ok(result.Value)
             : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
@@ -92,13 +83,10 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("{tenantId:guid}/public/login")]
     public async Task<IActionResult> LoginPublicUser([FromRoute] Guid tenantId, [FromBody] LoginPublicUserRequest request, CancellationToken ct)
     {
-        request = request with
-        {
-            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
-            UserAgent = HttpContext.Request.Headers.UserAgent.ToString()
-        };
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
-        var result = await _authService.LoginPublicUserAsync(tenantId, request, ct);
+        var result = await _authService.LoginPublicUserAsync(tenantId, request, ipAddress!, userAgent, ct);
         return result.IsSuccess
             ? Ok(result.Value)
             : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
@@ -107,13 +95,10 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("{tenantId:guid}/public/login/oauth")]
     public async Task<IActionResult> LoginPublicUserWithOAuth([FromRoute] Guid tenantId, [FromBody] LoginPublicUserWithOAuthRequest request, CancellationToken ct)
     {
-        request = request with
-        {
-            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
-            UserAgent = HttpContext.Request.Headers.UserAgent.ToString()
-        };
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
-        var result = await _authService.LoginPublicUserWithOAuthAsync(tenantId, request, ct);
+        var result = await _authService.LoginPublicUserWithOAuthAsync(tenantId, request, ipAddress!, userAgent, ct);
         return result.IsSuccess
             ? Ok(result.Value)
             : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
@@ -149,7 +134,7 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var email = User.FindFirstValue(ClaimTypes.Email);
-        var name = User.FindFirstValue(ClaimTypes.Name);
+        var name = User.FindFirstValue("name");
         var accountType = User.FindFirstValue("account_type");
         var tenantId = User.FindFirstValue("tenant_id");
 
