@@ -81,11 +81,10 @@ public sealed class TenantUserController(ITenantUserService tenantUserService, I
         return Ok(new { message = "Tokens revoked successfully" });
     }
 
-    [HttpGet]
-    public async Task<ActionResult<TenantUserResponse>> List(CancellationToken ct)
+    [HttpGet("list/{tenantId:Guid}")]
+    public async Task<ActionResult<TenantUserResponse>> List(Guid tenantId, CancellationToken ct)
     {
         var (userId, accountType) = GetCurrentUserInfo();
-        var tenantId = Guid.Parse(User.FindFirstValue("tenant_id")!);
 
         var result = await _tenantUserService.ListAsync(tenantId, userId, accountType, ct);
 
