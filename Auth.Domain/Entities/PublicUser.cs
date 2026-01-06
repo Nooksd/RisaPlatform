@@ -24,7 +24,8 @@ public sealed class PublicUser
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
 
-    public ICollection<RefreshToken> RefreshTokens { get; private set; } = new List<RefreshToken>();
+    public Tenant Tenant { get; private set; } = default!;
+    public ICollection<RefreshToken> RefreshTokens { get; private set; } = [];
 
     private PublicUser() { }
 

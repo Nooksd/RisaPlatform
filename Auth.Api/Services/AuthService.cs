@@ -1,4 +1,4 @@
-﻿using Auth.Api.DTOs;
+﻿using Auth.Domain.DTOs;
 using Auth.Domain.Entities;
 using Auth.Domain.Enums;
 using Auth.Domain.Interfaces.Repositories;
@@ -9,58 +9,24 @@ using AutoMapper;
 
 namespace Auth.Api.Services;
 
-public interface IAuthService
+public sealed class AuthService(
+    ITenantAccountRepository tenantAccountRepo,
+    ITenantUserRepository tenantUserRepo,
+    IPublicUserRepository publicUserRepo,
+    IRefreshTokenRepository tokenRepo,
+    IPasswordHasher passwordHasher,
+    ITokenGenerator tokenGenerator,
+    IOAuthService oauthService,
+    IMapper mapper) : IAuthService
 {
-    // Tenant Account
-    Task<AuthResult<AuthResponse>> RegisterTenantAsync(RegisterTenantRequest request, string ipAddress, string userAgent, CancellationToken ct = default);
-    Task<AuthResult<AuthResponse>> RegisterTenantWithOAuthAsync(RegisterTenantWithOAuthRequest request, CancellationToken ct = default);
-    Task<AuthResult<AuthResponse>> LoginTenantAsync(LoginRequest request, string ipAddress, string userAgent, CancellationToken ct = default);
-    Task<AuthResult<AuthResponse>> LoginTenantWithOAuthAsync(LoginWithOAuthRequest request, string ipAddress, string userAgent, CancellationToken ct = default);
-
-    // Tenant User
-    Task<AuthResult<AuthResponse>> LoginTenantUserAsync(LoginRequest request, string ipAddress, string userAgent, CancellationToken ct = default);
-
-    // Public User
-    Task<AuthResult<AuthResponse>> RegisterPublicUserAsync(Guid tenantId, RegisterPublicUserRequest request, CancellationToken ct = default);
-    Task<AuthResult<AuthResponse>> RegisterPublicUserWithOAuthAsync(Guid tenantId, RegisterPublicUserWithOAuthRequest request, CancellationToken ct = default);
-    Task<AuthResult<AuthResponse>> LoginPublicUserAsync(Guid tenantId, LoginPublicUserRequest request, string ipAddress, string userAgent, CancellationToken ct = default);
-    Task<AuthResult<AuthResponse>> LoginPublicUserWithOAuthAsync(Guid tenantId, LoginPublicUserWithOAuthRequest request, string ipAddress, string userAgent, CancellationToken ct = default);
-
-    // Common
-    Task<AuthResult<AuthResponse>> RefreshTokenAsync(RefreshTokenRequest request, CancellationToken ct = default);
-    Task<AuthResult<bool>> LogoutAsync(Guid userId, AccountType accountType, string refreshToken, CancellationToken ct = default);
-}
-
-public sealed class AuthService : IAuthService
-{
-    private readonly ITenantAccountRepository _tenantAccountRepo;
-    private readonly ITenantUserRepository _tenantUserRepo;
-    private readonly IPublicUserRepository _publicUserRepo;
-    private readonly IRefreshTokenRepository _tokenRepo;
-    private readonly IPasswordHasher _passwordHasher;
-    private readonly ITokenGenerator _tokenGenerator;
-    private readonly IOAuthService _oauthService;
-    private readonly IMapper _mapper;
-
-    public AuthService(
-        ITenantAccountRepository tenantAccountRepo,
-        ITenantUserRepository tenantUserRepo,
-        IPublicUserRepository publicUserRepo,
-        IRefreshTokenRepository tokenRepo,
-        IPasswordHasher passwordHasher,
-        ITokenGenerator tokenGenerator,
-        IOAuthService oauthService,
-        IMapper mapper)
-    {
-        _tenantAccountRepo = tenantAccountRepo;
-        _tenantUserRepo = tenantUserRepo;
-        _publicUserRepo = publicUserRepo;
-        _tokenRepo = tokenRepo;
-        _passwordHasher = passwordHasher;
-        _tokenGenerator = tokenGenerator;
-        _oauthService = oauthService;
-        _mapper = mapper;
-    }
+    private readonly ITenantAccountRepository _tenantAccountRepo = tenantAccountRepo;
+    private readonly ITenantUserRepository _tenantUserRepo = tenantUserRepo;
+    private readonly IPublicUserRepository _publicUserRepo = publicUserRepo;
+    private readonly IRefreshTokenRepository _tokenRepo = tokenRepo;
+    private readonly IPasswordHasher _passwordHasher = passwordHasher;
+    private readonly ITokenGenerator _tokenGenerator = tokenGenerator;
+    private readonly IOAuthService _oauthService = oauthService;
+    private readonly IMapper _mapper = mapper;
 
     // ===== TENANT ACCOUNT =====
 
@@ -72,9 +38,8 @@ public sealed class AuthService : IAuthService
             return AuthError.UserAlreadyExists;
 
         var passwordHash = PasswordHash.Create(_passwordHasher.Hash(request.Password));
-        var tenantId = Guid.NewGuid();
 
-        var account = TenantAccount.CreateWithPassword(tenantId, email, passwordHash, request.Name);
+        var account = TenantAccount.CreateWithPassword(email, passwordHash, request.Name);
         await _tenantAccountRepo.AddAsync(account, ct);
 
         return await CreateAuthResponse(account, ipAddress, userAgent, ct);
@@ -95,8 +60,7 @@ public sealed class AuthService : IAuthService
         if (await _tenantAccountRepo.ExistsAsync(email, ct))
             return AuthError.UserAlreadyExists;
 
-        var tenantId = Guid.NewGuid();
-        var account = TenantAccount.CreateWithOAuth(tenantId, email, oauthInfo.OAuthId, OAuthProvider.Google, oauthInfo.Name);
+        var account = TenantAccount.CreateWithOAuth(email, oauthInfo.OAuthId, OAuthProvider.Google, oauthInfo.Name);
 
         await _tenantAccountRepo.AddAsync(account, ct);
 
@@ -145,12 +109,14 @@ public sealed class AuthService : IAuthService
     private async Task<AuthResponse> CreateAuthResponse(TenantAccount account, string? ipAddress, string? userAgent, CancellationToken ct)
     {
         var userInfo = _mapper.Map<UserInfo>(account);
+        var tenantIds = account.Tenants.Select(t => t.Id).ToList();
+
         var claims = new TokenClaims(
             userInfo.Id,
             userInfo.AccountType,
-            userInfo.TenantId,
+            tenantIds,
             userInfo.Email,
-            userInfo.Name,
+            userInfo.Name!,
             userInfo.ModuleAccesses);
 
         var accessToken = _tokenGenerator.GenerateAccessToken(claims);
@@ -160,7 +126,6 @@ public sealed class AuthService : IAuthService
             refreshToken,
             account.Id,
             AccountType.TenantOwner,
-            account.TenantId,
             TimeSpan.FromDays(7),
             ipAddress,
             userAgent);
@@ -170,14 +135,55 @@ public sealed class AuthService : IAuthService
         return new AuthResponse(accessToken, refreshToken, token.ExpiresAt, userInfo);
     }
 
-    public async Task<AuthResult<AuthResponse>> LoginTenantUserAsync(LoginRequest request, string ipAddress, string userAgent, CancellationToken ct = default)
-    {
-        // Precisa buscar em todos os tenants já que não temos o tenantId no request
-        // Alternativa: passar tenantId no request ou ter domínio único por tenant
-        // Por ora, vou buscar só por email (assumindo que é único globalmente)
+    // ===== TENANT USER =====
 
-        // NOTA: Esta abordagem requer ajuste - em produção você deve ter subdomain ou tenantId no request
-        return AuthError.Custom("TENANT_USER_LOGIN", "TenantUser login requires tenant identification");
+    public async Task<AuthResult<AuthResponse>> LoginTenantUserAsync(TenantUserLoginRequest request, string ipAddress, string userAgent, CancellationToken ct = default)
+    {
+        var account = await _tenantUserRepo.GetByEmailOrUsernameAsync(request.TenantId, request.Email, request.Username, ct);
+
+        if (account is null)
+            return AuthError.InvalidCredentials;
+
+        if (!account.IsActive)
+            return AuthError.UserInactive;
+
+        if (account.PasswordHash is null || !_passwordHasher.Verify(request.Password, account.PasswordHash))
+            return AuthError.InvalidCredentials;
+
+        account.UpdateLastLogin();
+        await _tenantUserRepo.UpdateAsync(account, ct);
+
+        return await CreateAuthResponse(account, ipAddress, userAgent, ct);
+    }
+
+    private async Task<AuthResponse> CreateAuthResponse(TenantUser user, string? ipAddress, string? userAgent, CancellationToken ct)
+    {
+        await _tokenRepo.RevokeByUserAsync(user.Id, AccountType.TenantUser, "New login", ct);
+
+        var userInfo = _mapper.Map<UserInfo>(user);
+        var claims = new TokenClaims(
+            userInfo.Id,
+            userInfo.AccountType,
+            userInfo.TenantIds,
+            userInfo.Email,
+            userInfo.Name!,
+            userInfo.ModuleAccesses);
+
+        var accessToken = _tokenGenerator.GenerateAccessToken(claims);
+        var refreshToken = _tokenGenerator.GenerateRefreshToken();
+
+        var token = RefreshToken.Create(
+            refreshToken,
+            user.Id,
+            AccountType.TenantUser,
+
+            TimeSpan.FromDays(7),
+            ipAddress,
+            userAgent);
+
+        await _tokenRepo.AddAsync(token, ct);
+
+        return new AuthResponse(accessToken, refreshToken, token.ExpiresAt, userInfo);
     }
 
     // ===== PUBLIC USER =====
@@ -268,43 +274,17 @@ public sealed class AuthService : IAuthService
         return await CreateAuthResponse(user, ipAddress, userAgent, ct);
     }
 
-    private async Task<AuthResponse> CreateAuthResponse(TenantUser user, string? ipAddress, string? userAgent, CancellationToken ct)
-    {
-        var userInfo = _mapper.Map<UserInfo>(user);
-        var claims = new TokenClaims(
-            userInfo.Id,
-            userInfo.AccountType,
-            userInfo.TenantId,
-            userInfo.Email,
-            userInfo.Name,
-            userInfo.ModuleAccesses);
-
-        var accessToken = _tokenGenerator.GenerateAccessToken(claims);
-        var refreshToken = _tokenGenerator.GenerateRefreshToken();
-
-        var token = RefreshToken.Create(
-            refreshToken,
-            user.Id,
-            AccountType.TenantUser,
-            user.TenantId,
-            TimeSpan.FromDays(7),
-            ipAddress,
-            userAgent);
-
-        await _tokenRepo.AddAsync(token, ct);
-
-        return new AuthResponse(accessToken, refreshToken, token.ExpiresAt, userInfo);
-    }
-
     private async Task<AuthResponse> CreateAuthResponse(PublicUser user, string? ipAddress, string? userAgent, CancellationToken ct)
     {
+        await _tokenRepo.RevokeByUserAsync(user.Id, AccountType.PublicUser, "New login", ct);
+
         var userInfo = _mapper.Map<UserInfo>(user);
         var claims = new TokenClaims(
             userInfo.Id,
             userInfo.AccountType,
-            userInfo.TenantId,
+            userInfo.TenantIds,
             userInfo.Email,
-            userInfo.Name,
+            userInfo.Name!,
             userInfo.ModuleAccesses);
 
         var accessToken = _tokenGenerator.GenerateAccessToken(claims);
@@ -314,7 +294,6 @@ public sealed class AuthService : IAuthService
             refreshToken,
             user.Id,
             AccountType.PublicUser,
-            user.TenantId,
             TimeSpan.FromDays(7),
             ipAddress,
             userAgent);
@@ -333,7 +312,14 @@ public sealed class AuthService : IAuthService
         if (token is null || !token.IsValid)
             return AuthError.InvalidToken;
 
-        // Busca o usuário baseado no tipo de conta
+        var latestToken = await _tokenRepo.GetLatestByUserAsync(token.UserId, token.AccountType, ct);
+
+        if (latestToken is null || latestToken.Id != token.Id)
+        {
+            await _tokenRepo.RevokeByUserAsync(token.UserId, token.AccountType, "Stale token used", ct);
+            return AuthError.InvalidToken;
+        }
+
         UserInfo? userInfo = token.AccountType switch
         {
             AccountType.TenantOwner => await GetTenantAccountUserInfo(token.UserId, ct),
@@ -348,9 +334,9 @@ public sealed class AuthService : IAuthService
         var claims = new TokenClaims(
             userInfo.Id,
             userInfo.AccountType,
-            userInfo.TenantId,
+            userInfo.TenantIds,
             userInfo.Email,
-            userInfo.Name,
+            userInfo.Name!,
             userInfo.ModuleAccesses);
 
         var accessToken = _tokenGenerator.GenerateAccessToken(claims);

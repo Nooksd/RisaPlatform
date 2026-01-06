@@ -10,21 +10,24 @@ public sealed class TenantUser
     public Guid Id { get; private set; }
     public Guid TenantId { get; private set; }
     public Email Email { get; private set; } = default!;
-    public PasswordHash PasswordHash { get; private set; } = default!;
     public string Name { get; private set; } = default!;
+    public string Username { get; private set; } = default!;
+    public PasswordHash PasswordHash { get; private set; } = default!;
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? LastLoginAt { get; private set; }
     public Guid CreatedBy { get; private set; }
 
-    public ICollection<ModuleAccess> ModuleAccesses { get; private set; } = new List<ModuleAccess>();
-    public ICollection<RefreshToken> RefreshTokens { get; private set; } = new List<RefreshToken>();
+    public Tenant Tenant { get; private set; } = default!;
+    public ICollection<ModuleAccess> ModuleAccesses { get; private set; } = [];
+    public ICollection<RefreshToken> RefreshTokens { get; private set; } = [];
 
     private TenantUser() { }
 
     public static TenantUser Create(
         Guid tenantId,
         Email email,
+        string username,
         PasswordHash passwordHash,
         string name,
         Guid createdBy,
@@ -36,6 +39,7 @@ public sealed class TenantUser
             TenantId = tenantId,
             Email = email,
             PasswordHash = passwordHash,
+            Username = username,
             Name = name,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
@@ -73,12 +77,9 @@ public sealed class TenantUser
         PasswordHash = newPasswordHash;
     }
 
-    public void UpdateName(string name)
+    public void UpdateName(string newName)
     {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name cannot be empty", nameof(name));
-
-        Name = name;
+        Name = newName;
     }
 
     public void UpdateModuleAccesses(ModuleAccessCollection newAccesses)

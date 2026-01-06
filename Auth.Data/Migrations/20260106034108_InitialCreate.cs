@@ -12,6 +12,69 @@ namespace Auth.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "refresh_tokens",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    token = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    account_type = table.Column<int>(type: "integer", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    expires_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    is_revoked = table.Column<bool>(type: "boolean", nullable: false),
+                    revoked_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    revoked_reason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    ip_address = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
+                    user_agent = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_refresh_tokens", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "tenant_accounts",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    password_hash = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    oauth_id = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    oauth_provider = table.Column<int>(type: "integer", nullable: false),
+                    name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    is_active = table.Column<bool>(type: "boolean", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    last_login_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_tenant_accounts", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "tenants",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    domain = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    is_active = table.Column<bool>(type: "boolean", nullable: false),
+                    created_by = table.Column<Guid>(type: "uuid", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_tenants", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_tenants_tenant_accounts_created_by",
+                        column: x => x.created_by,
+                        principalTable: "tenant_accounts",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "public_users",
                 columns: table => new
                 {
@@ -28,31 +91,24 @@ namespace Auth.Data.Migrations
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     last_login_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    deleted_by = table.Column<Guid>(type: "uuid", nullable: true)
+                    deleted_by = table.Column<Guid>(type: "uuid", nullable: true),
+                    TenantId1 = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_public_users", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "tenant_accounts",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    tenant_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    password_hash = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    oauth_id = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    oauth_provider = table.Column<int>(type: "integer", nullable: false),
-                    name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    is_active = table.Column<bool>(type: "boolean", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    last_login_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_tenant_accounts", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_public_users_tenants_TenantId1",
+                        column: x => x.TenantId1,
+                        principalTable: "tenants",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_public_users_tenants_tenant_id",
+                        column: x => x.tenant_id,
+                        principalTable: "tenants",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -62,8 +118,9 @@ namespace Auth.Data.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     tenant_id = table.Column<Guid>(type: "uuid", nullable: false),
                     email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    password_hash = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    username = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    password_hash = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     last_login_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -72,6 +129,12 @@ namespace Auth.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_tenant_users", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_tenant_users_tenants_tenant_id",
+                        column: x => x.tenant_id,
+                        principalTable: "tenants",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -89,46 +152,6 @@ namespace Auth.Data.Migrations
                     table.ForeignKey(
                         name: "FK_module_accesses_tenant_users_tenant_user_id",
                         column: x => x.tenant_user_id,
-                        principalTable: "tenant_users",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "refresh_tokens",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    token = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    account_type = table.Column<int>(type: "integer", nullable: false),
-                    tenant_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    expires_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    is_revoked = table.Column<bool>(type: "boolean", nullable: false),
-                    revoked_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    revoked_reason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    ip_address = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
-                    user_agent = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_refresh_tokens", x => x.id);
-                    table.ForeignKey(
-                        name: "FK_refresh_tokens_public_users_user_id",
-                        column: x => x.user_id,
-                        principalTable: "public_users",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_refresh_tokens_tenant_accounts_user_id",
-                        column: x => x.user_id,
-                        principalTable: "tenant_accounts",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_refresh_tokens_tenant_users_user_id",
-                        column: x => x.user_id,
                         principalTable: "tenant_users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -162,6 +185,11 @@ namespace Auth.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_public_users_TenantId1",
+                table: "public_users",
+                column: "TenantId1");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_refresh_tokens_expires_at",
                 table: "refresh_tokens",
                 column: "expires_at");
@@ -170,11 +198,6 @@ namespace Auth.Data.Migrations
                 name: "ix_refresh_tokens_is_revoked",
                 table: "refresh_tokens",
                 column: "is_revoked");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_refresh_tokens_tenant_id",
-                table: "refresh_tokens",
-                column: "tenant_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_refresh_tokens_token",
@@ -199,12 +222,6 @@ namespace Auth.Data.Migrations
                 columns: new[] { "oauth_id", "oauth_provider" });
 
             migrationBuilder.CreateIndex(
-                name: "ix_tenant_accounts_tenant_id",
-                table: "tenant_accounts",
-                column: "tenant_id",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "ix_tenant_users_created_by",
                 table: "tenant_users",
                 column: "created_by");
@@ -219,6 +236,17 @@ namespace Auth.Data.Migrations
                 name: "ix_tenant_users_tenant_id",
                 table: "tenant_users",
                 column: "tenant_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tenants_created_by_account",
+                table: "tenants",
+                column: "created_by");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tenants_domain",
+                table: "tenants",
+                column: "domain",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -228,16 +256,19 @@ namespace Auth.Data.Migrations
                 name: "module_accesses");
 
             migrationBuilder.DropTable(
-                name: "refresh_tokens");
-
-            migrationBuilder.DropTable(
                 name: "public_users");
 
             migrationBuilder.DropTable(
-                name: "tenant_accounts");
+                name: "refresh_tokens");
 
             migrationBuilder.DropTable(
                 name: "tenant_users");
+
+            migrationBuilder.DropTable(
+                name: "tenants");
+
+            migrationBuilder.DropTable(
+                name: "tenant_accounts");
         }
     }
 }

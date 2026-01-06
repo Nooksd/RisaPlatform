@@ -12,7 +12,6 @@ public sealed class RefreshToken
     public string Token { get; private set; } = default!;
     public Guid UserId { get; private set; }
     public AccountType AccountType { get; private set; }
-    public Guid TenantId { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime ExpiresAt { get; private set; }
     public bool IsRevoked { get; private set; }
@@ -28,7 +27,6 @@ public sealed class RefreshToken
         string token,
         Guid userId,
         AccountType accountType,
-        Guid tenantId,
         TimeSpan expiresIn,
         string? ipAddress = null,
         string? userAgent = null)
@@ -39,7 +37,6 @@ public sealed class RefreshToken
             Token = token,
             UserId = userId,
             AccountType = accountType,
-            TenantId = tenantId,
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.Add(expiresIn),
             IsRevoked = false,

@@ -29,10 +29,6 @@ public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refresh
             .HasColumnName("account_type")
             .IsRequired();
 
-        builder.Property(x => x.TenantId)
-            .HasColumnName("tenant_id")
-            .IsRequired();
-
         builder.Property(x => x.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();
@@ -66,9 +62,6 @@ public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refresh
 
         builder.HasIndex(x => new { x.UserId, x.AccountType })
             .HasDatabaseName("ix_refresh_tokens_user");
-
-        builder.HasIndex(x => x.TenantId)
-            .HasDatabaseName("ix_refresh_tokens_tenant_id");
 
         builder.HasIndex(x => x.ExpiresAt)
             .HasDatabaseName("ix_refresh_tokens_expires_at");

@@ -17,10 +17,6 @@ public sealed class TenantAccountConfiguration : IEntityTypeConfiguration<Tenant
             .HasColumnName("id")
             .ValueGeneratedNever();
 
-        builder.Property(x => x.TenantId)
-            .HasColumnName("tenant_id")
-            .IsRequired();
-
         builder.Property(x => x.Email)
             .HasColumnName("email")
             .HasMaxLength(255)
@@ -60,16 +56,18 @@ public sealed class TenantAccountConfiguration : IEntityTypeConfiguration<Tenant
         builder.Property(x => x.LastLoginAt)
             .HasColumnName("last_login_at");
 
+        // Índices
         builder.HasIndex(x => x.Email)
             .IsUnique()
             .HasDatabaseName("ix_tenant_accounts_email");
 
-        builder.HasIndex(x => x.TenantId)
-            .IsUnique()
-            .HasDatabaseName("ix_tenant_accounts_tenant_id");
-
         builder.HasIndex(x => new { x.OAuthId, x.OAuthProvider })
             .HasDatabaseName("ix_tenant_accounts_oauth");
+
+        builder.HasMany(x => x.Tenants)
+            .WithOne(x => x.TenantAccount)
+            .HasForeignKey(x => x.CreatedBy)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Ignore(x => x.RefreshTokens);
     }

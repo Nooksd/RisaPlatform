@@ -1,4 +1,4 @@
-﻿using Auth.Api.DTOs;
+﻿using Auth.Domain.DTOs;
 using Auth.Domain.Enums;
 using FluentValidation;
 
@@ -8,10 +8,6 @@ public sealed class UpdateTenantUserRequestValidator : AbstractValidator<UpdateT
 {
     public UpdateTenantUserRequestValidator()
     {
-        RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Name is required")
-            .MaximumLength(255).WithMessage("Name cannot exceed 255 characters");
-
         RuleFor(x => x.ModuleAccesses)
             .NotNull().WithMessage("Module accesses are required")
             .Must(ValidateModuleAccesses).WithMessage("Invalid module or access level");

@@ -10,6 +10,7 @@ public sealed class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbC
     public DbSet<ModuleAccess> ModuleAccesses => Set<ModuleAccess>();
     public DbSet<PublicUser> PublicUsers => Set<PublicUser>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Tenant> Tenants => Set<Tenant>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

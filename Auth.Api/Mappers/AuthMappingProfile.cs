@@ -1,4 +1,4 @@
-﻿using Auth.Api.DTOs;
+﻿using Auth.Domain.DTOs;
 using Auth.Domain.Entities;
 using AutoMapper;
 
@@ -13,18 +13,22 @@ public sealed class AuthMappingProfile : Profile
                 src.Id,
                 src.Email.Value,
                 src.Name,
+                null,
                 "TenantOwner",
-                src.TenantId,
-                GetFullModuleAccess()));
+                src.Tenants.Select(tnt => tnt.Id).ToList(),
+                GetFullModuleAccess()))
+            .ForAllMembers(opt => opt.Ignore());
 
         CreateMap<TenantUser, UserInfo>()
             .ConstructUsing(src => new UserInfo(
                 src.Id,
                 src.Email.Value,
                 src.Name,
+                src.Username,
                 "TenantUser",
-                src.TenantId,
-                src.ModuleAccesses.ToDictionary(ma => ma.Module, ma => ma.AccessLevel)));
+                new List<Guid> { src.TenantId },
+                src.ModuleAccesses.ToDictionary(ma => ma.Module, ma => ma.AccessLevel)))
+            .ForAllMembers(opt => opt.Ignore());
 
         CreateMap<TenantUser, TenantUserResponse>()
             .ConstructUsing(src => new TenantUserResponse(
@@ -36,7 +40,8 @@ public sealed class AuthMappingProfile : Profile
                 src.CreatedAt,
                 src.LastLoginAt,
                 src.CreatedBy,
-                src.ModuleAccesses.ToDictionary(ma => ma.Module, ma => ma.AccessLevel)));
+                src.ModuleAccesses.ToDictionary(ma => ma.Module, ma => ma.AccessLevel)))
+            .ForAllMembers(opt => opt.Ignore());
 
         CreateMap<TenantUser, TenantUserDetailResponse>()
             .ConstructUsing(src => new TenantUserDetailResponse(
@@ -48,16 +53,20 @@ public sealed class AuthMappingProfile : Profile
                 src.CreatedAt,
                 src.LastLoginAt,
                 src.CreatedBy,
-                src.ModuleAccesses.ToDictionary(ma => ma.Module, ma => ma.AccessLevel)));
+                src.ModuleAccesses.ToDictionary(ma => ma.Module, ma => ma.AccessLevel)))
+            .ForAllMembers(opt => opt.Ignore());
+
 
         CreateMap<PublicUser, UserInfo>()
             .ConstructUsing(src => new UserInfo(
                 src.Id,
                 src.Email.Value,
                 src.Name,
+                null,
                 "PublicUser",
-                src.TenantId,
-                new Dictionary<string, int> { { src.Module, 1 } }));
+                new List<Guid> { src.TenantId },
+                new Dictionary<string, int> { { src.Module, 0 } }))
+            .ForAllMembers(opt => opt.Ignore());
 
         CreateMap<RefreshToken, RefreshTokenInfo>()
             .ConstructUsing(src => new RefreshTokenInfo(
@@ -65,7 +74,38 @@ public sealed class AuthMappingProfile : Profile
                 src.CreatedAt,
                 src.ExpiresAt,
                 src.IpAddress,
-                src.UserAgent));
+                src.UserAgent))
+            .ForAllMembers(opt => opt.Ignore());
+
+        CreateMap<Tenant, TenantResponse>()
+            .ConstructUsing(src => new TenantResponse(
+                src.Id,
+                src.Domain.Value,
+                src.Name,
+                src.IsActive,
+                src.CreatedBy,
+                src.CreatedAt,
+                src.UpdatedAt,
+                src.Users.Count))
+            .ForAllMembers(opt => opt.Ignore());
+
+        CreateMap<Tenant, TenantDetailResponse>()
+            .ConstructUsing(src => new TenantDetailResponse(
+                src.Id,
+                src.Domain.Value,
+                src.Name,
+                src.IsActive,
+                src.CreatedBy,
+                src.CreatedAt,
+                src.UpdatedAt,
+                src.Users.Count))
+            .ForAllMembers(opt => opt.Ignore());
+
+        CreateMap<Tenant, TenantDomainResponse>()
+            .ConstructUsing(src => new TenantDomainResponse(
+                src.Id,
+                src.Domain.Value))
+            .ForAllMembers(opt => opt.Ignore());
     }
 
     private static Dictionary<string, int> GetFullModuleAccess()

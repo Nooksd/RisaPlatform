@@ -9,7 +9,6 @@ namespace Auth.Domain.Entities;
 public sealed class TenantAccount
 {
     public Guid Id { get; private set; }
-    public Guid TenantId { get; private set; }
     public Email Email { get; private set; } = default!;
     public PasswordHash? PasswordHash { get; private set; }
     public string? OAuthId { get; private set; }
@@ -19,12 +18,12 @@ public sealed class TenantAccount
     public DateTime CreatedAt { get; private set; }
     public DateTime? LastLoginAt { get; private set; }
 
-    public ICollection<RefreshToken> RefreshTokens { get; private set; } = new List<RefreshToken>();
+    public ICollection<RefreshToken> RefreshTokens { get; private set; } = [];
+    public ICollection<Tenant> Tenants { get; private set; } = [];
 
     private TenantAccount() { }
 
     public static TenantAccount CreateWithPassword(
-        Guid tenantId,
         Email email,
         PasswordHash passwordHash,
         string name)
@@ -32,7 +31,6 @@ public sealed class TenantAccount
         return new TenantAccount
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             Email = email,
             PasswordHash = passwordHash,
             OAuthProvider = OAuthProvider.None,
@@ -43,7 +41,6 @@ public sealed class TenantAccount
     }
 
     public static TenantAccount CreateWithOAuth(
-        Guid tenantId,
         Email email,
         string oauthId,
         OAuthProvider provider,
@@ -52,7 +49,6 @@ public sealed class TenantAccount
         return new TenantAccount
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             Email = email,
             OAuthId = oauthId,
             OAuthProvider = provider,
@@ -60,6 +56,13 @@ public sealed class TenantAccount
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
+    }
+
+    public Tenant CreateNewTenant(
+    ValueObjects.Domain domain,
+    string tenantName)
+    {
+        return Tenant.Create(domain, tenantName, Id);
     }
 
     public void UpdateLastLogin()

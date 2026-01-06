@@ -117,10 +117,15 @@ namespace Auth.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
+                    b.Property<Guid>("TenantId1")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IsDeleted")
                         .HasDatabaseName("ix_public_users_is_deleted");
+
+                    b.HasIndex("TenantId1");
 
                     b.HasIndex("TenantId", "Module")
                         .HasDatabaseName("ix_public_users_tenant_module");
@@ -171,10 +176,6 @@ namespace Auth.Data.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("revoked_reason");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -198,9 +199,6 @@ namespace Auth.Data.Migrations
                     b.HasIndex("IsRevoked")
                         .HasDatabaseName("ix_refresh_tokens_is_revoked");
 
-                    b.HasIndex("TenantId")
-                        .HasDatabaseName("ix_refresh_tokens_tenant_id");
-
                     b.HasIndex("Token")
                         .IsUnique()
                         .HasDatabaseName("ix_refresh_tokens_token");
@@ -209,6 +207,52 @@ namespace Auth.Data.Migrations
                         .HasDatabaseName("ix_refresh_tokens_user");
 
                     b.ToTable("refresh_tokens", (string)null);
+                });
+
+            modelBuilder.Entity("Auth.Domain.Entities.Tenant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Domain")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("domain");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy")
+                        .HasDatabaseName("ix_tenants_created_by_account");
+
+                    b.HasIndex("Domain")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tenants_domain");
+
+                    b.ToTable("tenants", (string)null);
                 });
 
             modelBuilder.Entity("Auth.Domain.Entities.TenantAccount", b =>
@@ -255,19 +299,11 @@ namespace Auth.Data.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("password_hash");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique()
                         .HasDatabaseName("ix_tenant_accounts_email");
-
-                    b.HasIndex("TenantId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_tenant_accounts_tenant_id");
 
                     b.HasIndex("OAuthId", "OAuthProvider")
                         .HasDatabaseName("ix_tenant_accounts_oauth");
@@ -319,6 +355,12 @@ namespace Auth.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("username");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedBy")
@@ -343,6 +385,57 @@ namespace Auth.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("TenantUser");
+                });
+
+            modelBuilder.Entity("Auth.Domain.Entities.PublicUser", b =>
+                {
+                    b.HasOne("Auth.Domain.Entities.Tenant", null)
+                        .WithMany("PublicUsers")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Auth.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("Auth.Domain.Entities.Tenant", b =>
+                {
+                    b.HasOne("Auth.Domain.Entities.TenantAccount", "TenantAccount")
+                        .WithMany("Tenants")
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("TenantAccount");
+                });
+
+            modelBuilder.Entity("Auth.Domain.Entities.TenantUser", b =>
+                {
+                    b.HasOne("Auth.Domain.Entities.Tenant", "Tenant")
+                        .WithMany("Users")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("Auth.Domain.Entities.Tenant", b =>
+                {
+                    b.Navigation("PublicUsers");
+
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("Auth.Domain.Entities.TenantAccount", b =>
+                {
+                    b.Navigation("Tenants");
                 });
 
             modelBuilder.Entity("Auth.Domain.Entities.TenantUser", b =>

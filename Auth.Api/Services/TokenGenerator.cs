@@ -24,7 +24,7 @@ public sealed class TokenGenerator(JwtSettings settings) : ITokenGenerator
             new(JwtRegisteredClaimNames.Name, claims.Name),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new("account_type", claims.AccountType),
-            new("tenant_id", claims.TenantId.ToString()),
+            new("tenant_ids", String.Join(",", claims.TenantIds)),
             new("module_accesses", JsonSerializer.Serialize(claims.ModuleAccesses))
         };
 
@@ -74,13 +74,24 @@ public sealed class TokenGenerator(JwtSettings settings) : ITokenGenerator
 
             var userId = Guid.Parse(principal.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
             var accountType = principal.FindFirstValue("account_type")!;
-            var tenantId = Guid.Parse(principal.FindFirstValue("tenant_id")!);
             var email = principal.FindFirstValue(JwtRegisteredClaimNames.Email)!;
             var name = principal.FindFirstValue(JwtRegisteredClaimNames.Name)!;
             var moduleAccessesJson = principal.FindFirstValue("module_accesses")!;
             var moduleAccesses = JsonSerializer.Deserialize<Dictionary<string, int>>(moduleAccessesJson)!;
+            var tenantIds = principal.FindFirstValue("tenant_ids")!
+                    .Split([','], StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s =>
+                    {
+                        if (Guid.TryParse(s.Trim(), out var id))
+                            return (Guid?)id;
 
-            return new TokenClaims(userId, accountType, tenantId, email, name, moduleAccesses);
+                        return null;
+                    })
+                    .Where(g => g.HasValue)
+                    .Select(g => g!.Value)
+                    .ToList() ?? [];
+
+            return new TokenClaims(userId, accountType, tenantIds, email, name, moduleAccesses);
         }
         catch
         {

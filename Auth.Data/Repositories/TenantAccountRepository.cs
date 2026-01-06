@@ -12,25 +12,22 @@ public sealed class TenantAccountRepository(AuthDbContext context) : ITenantAcco
     public async Task<TenantAccount?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         return await _context.TenantAccounts
+            .Include(ta => ta.Tenants)
             .FirstOrDefaultAsync(x => x.Id == id, ct);
     }
 
     public async Task<TenantAccount?> GetByEmailAsync(string email, CancellationToken ct = default)
     {
         return await _context.TenantAccounts
+            .Include(ta => ta.Tenants)
             .FirstOrDefaultAsync(x => x.Email == email, ct);
     }
 
     public async Task<TenantAccount?> GetByOAuthAsync(string oauthId, OAuthProvider provider, CancellationToken ct = default)
     {
         return await _context.TenantAccounts
+            .Include(ta => ta.Tenants)
             .FirstOrDefaultAsync(x => x.OAuthId == oauthId && x.OAuthProvider == provider, ct);
-    }
-
-    public async Task<TenantAccount?> GetByTenantIdAsync(Guid tenantId, CancellationToken ct = default)
-    {
-        return await _context.TenantAccounts
-            .FirstOrDefaultAsync(x => x.TenantId == tenantId, ct);
     }
 
     public async Task<bool> ExistsAsync(string email, CancellationToken ct = default)

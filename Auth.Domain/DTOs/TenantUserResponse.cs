@@ -1,6 +1,6 @@
-﻿namespace Auth.Api.DTOs;
+﻿namespace Auth.Domain.DTOs;
 
-public sealed record TenantUserDetailResponse(
+public sealed record TenantUserResponse(
     Guid Id,
     Guid TenantId,
     string Email,
@@ -9,6 +9,4 @@ public sealed record TenantUserDetailResponse(
     DateTime CreatedAt,
     DateTime? LastLoginAt,
     Guid CreatedBy,
-    Dictionary<string, int> ModuleAccesses
-    );
-
+    Dictionary<string, int> ModuleAccesses);

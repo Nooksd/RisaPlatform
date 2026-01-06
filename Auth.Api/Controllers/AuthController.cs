@@ -1,17 +1,23 @@
-﻿using Auth.Api.DTOs;
-using Auth.Api.Services;
+﻿using Auth.Api.Settings;
+using Auth.Domain.DTOs;
 using Auth.Domain.Enums;
+using Auth.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace Auth.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public sealed class AuthController(IAuthService authService) : ControllerBase
+public sealed class AuthController(
+    IAuthService authService,
+    IOptions<CookieSettings> cookieSettings) : ControllerBase
 {
     private readonly IAuthService _authService = authService;
+    private readonly CookieSettings _cookieSettings = cookieSettings.Value;
 
     // ===== TENANT ACCOUNT =====
 
@@ -22,18 +28,28 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
         var result = await _authService.RegisterTenantAsync(request, ipAddress!, userAgent, ct);
-        return result.IsSuccess
-            ? Ok(result.Value)
-            : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+        }
+
+        SetAuthCookies(result.Value!);
+        return Ok(result.Value);
     }
 
     [HttpPost("tenant/register/oauth")]
     public async Task<IActionResult> RegisterTenantWithOAuth([FromBody] RegisterTenantWithOAuthRequest request, CancellationToken ct)
     {
         var result = await _authService.RegisterTenantWithOAuthAsync(request, ct);
-        return result.IsSuccess
-            ? Ok(result.Value)
-            : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+        }
+
+        SetAuthCookies(result.Value!);
+        return Ok(result.Value);
     }
 
     [HttpPost("tenant/login")]
@@ -43,9 +59,14 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
         var result = await _authService.LoginTenantAsync(request, ipAddress!, userAgent, ct);
-        return result.IsSuccess
-            ? Ok(result.Value)
-            : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+        }
+
+        SetAuthCookies(result.Value!);
+        return Ok(result.Value);
     }
 
     [HttpPost("tenant/login/oauth")]
@@ -55,9 +76,33 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
         var result = await _authService.LoginTenantWithOAuthAsync(request, ipAddress!, userAgent, ct);
-        return result.IsSuccess
-            ? Ok(result.Value)
-            : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+        }
+
+        SetAuthCookies(result.Value!);
+        return Ok(result.Value);
+    }
+
+    // ===== TENANT USER =====
+
+    [HttpPost("tenantuser/login")]
+    public async Task<IActionResult> LoginTenantUser([FromBody] TenantUserLoginRequest request, CancellationToken ct)
+    {
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
+
+        var result = await _authService.LoginTenantUserAsync(request, ipAddress!, userAgent, ct);
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+        }
+
+        SetAuthCookies(result.Value!);
+        return Ok(result.Value);
     }
 
     // ===== PUBLIC USER =====
@@ -66,18 +111,28 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     public async Task<IActionResult> RegisterPublicUser([FromRoute] Guid tenantId, [FromBody] RegisterPublicUserRequest request, CancellationToken ct)
     {
         var result = await _authService.RegisterPublicUserAsync(tenantId, request, ct);
-        return result.IsSuccess
-            ? Ok(result.Value)
-            : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+        }
+
+        SetAuthCookies(result.Value!);
+        return Ok(result.Value);
     }
 
     [HttpPost("{tenantId:guid}/public/register/oauth")]
     public async Task<IActionResult> RegisterPublicUserWithOAuth([FromRoute] Guid tenantId, [FromBody] RegisterPublicUserWithOAuthRequest request, CancellationToken ct)
     {
         var result = await _authService.RegisterPublicUserWithOAuthAsync(tenantId, request, ct);
-        return result.IsSuccess
-            ? Ok(result.Value)
-            : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+        }
+
+        SetAuthCookies(result.Value!);
+        return Ok(result.Value);
     }
 
     [HttpPost("{tenantId:guid}/public/login")]
@@ -87,9 +142,14 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
         var result = await _authService.LoginPublicUserAsync(tenantId, request, ipAddress!, userAgent, ct);
-        return result.IsSuccess
-            ? Ok(result.Value)
-            : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+        }
+
+        SetAuthCookies(result.Value!);
+        return Ok(result.Value);
     }
 
     [HttpPost("{tenantId:guid}/public/login/oauth")]
@@ -99,33 +159,76 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
         var result = await _authService.LoginPublicUserWithOAuthAsync(tenantId, request, ipAddress!, userAgent, ct);
-        return result.IsSuccess
-            ? Ok(result.Value)
-            : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+        }
+
+        SetAuthCookies(result.Value!);
+        return Ok(result.Value);
     }
 
     // ===== COMMON =====
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request, CancellationToken ct)
+    public async Task<IActionResult> RefreshToken(CancellationToken ct)
     {
-        var result = await _authService.RefreshTokenAsync(request, ct);
-        return result.IsSuccess
-            ? Ok(result.Value)
-            : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+        var refreshToken = Request.Cookies[_cookieSettings.RefreshTokenCookieName];
+
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            var request = await HttpContext.Request.ReadFromJsonAsync<RefreshTokenRequest>();
+            refreshToken = request?.RefreshToken;
+        }
+
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            return BadRequest(new { error = "REFRESH_TOKEN_MISSING", message = "Refresh token is required" });
+        }
+
+        var result = await _authService.RefreshTokenAsync(new RefreshTokenRequest(refreshToken), ct);
+
+        if (!result.IsSuccess)
+        {
+            ClearAuthCookies();
+            return BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+        }
+
+        SetAuthCookies(result.Value!);
+        return Ok(result.Value);
     }
 
     [Authorize]
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout([FromBody] RefreshTokenRequest request, CancellationToken ct)
+    public async Task<IActionResult> Logout(CancellationToken ct)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var accountType = Enum.Parse<AccountType>(User.FindFirstValue("account_type")!);
 
-        var result = await _authService.LogoutAsync(userId, accountType, request.RefreshToken, ct);
-        return result.IsSuccess
-            ? Ok(new { message = "Logged out successfully" })
-            : BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+        var refreshToken = Request.Cookies[_cookieSettings.RefreshTokenCookieName];
+
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            var request = await HttpContext.Request.ReadFromJsonAsync<RefreshTokenRequest>(cancellationToken: ct);
+            refreshToken = request?.RefreshToken;
+        }
+
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            ClearAuthCookies();
+            return Ok(new { message = "Logged out successfully" });
+        }
+
+        var result = await _authService.LogoutAsync(userId, accountType, refreshToken, ct);
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { error = result.Error!.Code, message = result.Error.Message });
+        }
+
+        ClearAuthCookies();
+        return Ok(new { message = "Logged out successfully" });
     }
 
     [Authorize]
@@ -136,7 +239,19 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
         var email = User.FindFirstValue(ClaimTypes.Email);
         var name = User.FindFirstValue("name");
         var accountType = User.FindFirstValue("account_type");
-        var tenantId = User.FindFirstValue("tenant_id");
+        var tenantIdsClaim = User.FindFirstValue("tenant_ids");
+        var moduleAccess = JsonSerializer.Deserialize<Dictionary<string, int>>(User.FindFirstValue("module_accesses")!);
+        var tenantIds = tenantIdsClaim?
+                .Split([','], StringSplitOptions.RemoveEmptyEntries)
+                .Select(s =>
+                {
+                    if (Guid.TryParse(s.Trim(), out var id))
+                        return (Guid?)id;
+                    return null;
+                })
+                .Where(g => g.HasValue)
+                .Select(g => g!.Value)
+                .ToList() ?? [];
 
         return Ok(new
         {
@@ -144,7 +259,34 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
             email,
             name,
             accountType,
-            tenantId
+            tenantIds,
+            moduleAccess
         });
+    }
+
+    [HttpPost("logout-all")]
+    public async Task<IActionResult> LogoutAll(CancellationToken ct)
+    {
+        ClearAuthCookies();
+        return Ok(new { message = "All local sessions cleared" });
+    }
+
+    private void SetAuthCookies(AuthResponse authResponse)
+    {
+        Response.Cookies.Append(
+            _cookieSettings.AccessTokenCookieName,
+            authResponse.AccessToken,
+            _cookieSettings.GetAccessTokenCookieOptions());
+
+        Response.Cookies.Append(
+            _cookieSettings.RefreshTokenCookieName,
+            authResponse.RefreshToken,
+            _cookieSettings.GetRefreshTokenCookieOptions());
+    }
+
+    private void ClearAuthCookies()
+    {
+        Response.Cookies.Delete(_cookieSettings.AccessTokenCookieName);
+        Response.Cookies.Delete(_cookieSettings.RefreshTokenCookieName);
     }
 }

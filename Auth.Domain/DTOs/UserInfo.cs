@@ -1,9 +1,10 @@
-﻿namespace Auth.Api.DTOs;
+﻿namespace Auth.Domain.DTOs;
 
 public sealed record UserInfo(
     Guid Id,
     string Email,
-    string Name,
+    string? Name,
+    string? UserName,
     string AccountType,
-    Guid TenantId,
+    List<Guid> TenantIds,
     Dictionary<string, int> ModuleAccesses);

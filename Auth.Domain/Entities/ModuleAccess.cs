@@ -8,9 +8,8 @@ public sealed class ModuleAccess
     public Guid Id { get; private set; }
     public Guid TenantUserId { get; private set; }
     public string Module { get; private set; } = default!;
-    public int AccessLevel { get; private set; } // 0-3
+    public int AccessLevel { get; private set; }
 
-    // Navigation
     public TenantUser TenantUser { get; private set; } = default!;
 
     private ModuleAccess() { }

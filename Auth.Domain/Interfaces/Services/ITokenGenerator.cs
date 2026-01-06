@@ -10,7 +10,7 @@ public interface ITokenGenerator
 public record TokenClaims(
     Guid UserId,
     string AccountType,
-    Guid TenantId,
+    List<Guid> TenantIds,
     string Email,
     string Name,
     Dictionary<string, int> ModuleAccesses);

@@ -42,6 +42,11 @@ public sealed class TenantUserConfiguration : IEntityTypeConfiguration<TenantUse
             .HasMaxLength(255)
             .IsRequired();
 
+        builder.Property(x => x.Username)
+            .HasColumnName("username")
+            .HasMaxLength(255)
+            .IsRequired();
+
         builder.Property(x => x.IsActive)
             .HasColumnName("is_active")
             .IsRequired();

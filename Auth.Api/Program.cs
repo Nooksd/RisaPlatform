@@ -1,6 +1,7 @@
 using Auth.Api.Filters;
 using Auth.Api.Mappers;
 using Auth.Api.Services;
+using Auth.Api.Settings;
 using Auth.Api.Validators;
 using Auth.Data;
 using Auth.Domain.Interfaces.Services;
@@ -8,6 +9,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
@@ -30,6 +32,8 @@ var oauthSettings = new OAuthSettings
         ?? throw new InvalidOperationException("Google ClientId not configured")
 };
 
+builder.Services.Configure<CookieSettings>(builder.Configuration.GetSection("CookieSettings"));
+
 builder.Services.AddAuthData(builder.Configuration);
 
 builder.Services.AddSingleton(jwtSettings);
@@ -39,6 +43,7 @@ builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
 builder.Services.AddScoped<IOAuthService, OAuthService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITenantUserService, TenantUserService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
 
 builder.Services.AddAutoMapper(cfg => { }, typeof(AuthMappingProfile));
 
@@ -62,6 +67,29 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings.Audience,
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var cookieSettings = context.HttpContext.RequestServices
+                .GetRequiredService<IOptions<CookieSettings>>().Value;
+
+            var accessToken = context.Request.Cookies[cookieSettings.AccessTokenCookieName];
+
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                accessToken = context.Request.Headers.Authorization.FirstOrDefault()?.Split(" ").Last();
+            }
+
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -101,9 +129,10 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173", "https://seu-frontend.com")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 

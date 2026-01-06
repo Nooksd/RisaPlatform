@@ -12,16 +12,30 @@ public sealed class TenantUserRepository(AuthDbContext context) : ITenantUserRep
     {
         return await _context.TenantUsers
             .Include(x => x.ModuleAccesses)
-            
             .FirstOrDefaultAsync(x => x.Id == id, ct);
     }
 
-    public async Task<TenantUser?> GetByEmailAsync(Guid tenantId, string email, CancellationToken ct = default)
+    public async Task<TenantUser?> GetByEmailOrUsernameAsync(Guid tenantId, string? email, string? username, CancellationToken ct = default)
     {
-        return await _context.TenantUsers
+        if (string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(username))
+        {
+            return null;
+        }
+
+        var query = _context.TenantUsers
             .Include(x => x.ModuleAccesses)
-            
-            .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.Email == email, ct);
+            .Where(x => x.TenantId == tenantId);
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            query = query.Where(x => x.Email == email);
+        }
+        else if (!string.IsNullOrWhiteSpace(username))
+        {
+            query = query.Where(x => x.Username == username);
+        }
+
+        return await query.FirstOrDefaultAsync(ct);
     }
 
     public async Task<IEnumerable<TenantUser>> GetByTenantIdAsync(Guid tenantId, CancellationToken ct = default)
@@ -32,10 +46,10 @@ public sealed class TenantUserRepository(AuthDbContext context) : ITenantUserRep
             .ToListAsync(ct);
     }
 
-    public async Task<bool> ExistsAsync(Guid tenantId, string email, CancellationToken ct = default)
+    public async Task<bool> ExistsAsync(Guid tenantId, string email, string username, CancellationToken ct = default)
     {
         return await _context.TenantUsers
-            .AnyAsync(x => x.TenantId == tenantId && x.Email == email, ct);
+            .AnyAsync(x => x.TenantId == tenantId && (x.Email == email || x.Username == username), ct);
     }
 
     public async Task AddAsync(TenantUser user, CancellationToken ct = default)

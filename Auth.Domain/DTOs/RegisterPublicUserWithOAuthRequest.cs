@@ -1,4 +1,4 @@
-﻿namespace Auth.Api.DTOs;
+﻿namespace Auth.Domain.DTOs;
 
 public sealed record RegisterPublicUserWithOAuthRequest(
     string Module,
