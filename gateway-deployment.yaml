@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-api
+  namespace: gateway
+  labels:
+    app: gateway-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-api
+  template:
+    metadata:
+      labels:
+        app: gateway-api
+    spec:
+      containers:
+      - name: gateway-api
+        image: noooksd/gateway-api:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: gateway-config
+              key: ASPNETCORE_ENVIRONMENT
+        - name: ASPNETCORE_URLS
+          valueFrom:
+            configMapKeyRef:
+              name: gateway-config
+              key: ASPNETCORE_URLS
+        - name: Jwt__Issuer
+          valueFrom:
+            configMapKeyRef:
+              name: gateway-config
+              key: Jwt__Issuer
+        - name: Jwt__Audience
+          valueFrom:
+            configMapKeyRef:
+              name: gateway-config
+              key: Jwt__Audience
+        - name: Jwt__Key
+          valueFrom:
+            secretKeyRef:
+              name: gateway-secret
+              key: Jwt__Key
+        - name: Redis__ConnectionString
+          valueFrom:
+            configMapKeyRef:
+              name: gateway-config
+              key: Redis__ConnectionString
+        - name: RabbitMq__Host
+          valueFrom:
+            configMapKeyRef:
+              name: gateway-config
+              key: RabbitMq__Host
+        - name: RabbitMq__Port
+          valueFrom:
+            configMapKeyRef:
+              name: gateway-config
+              key: RabbitMq__Port
+        - name: RabbitMq__Username
+          valueFrom:
+            configMapKeyRef:
+              name: gateway-config
+              key: RabbitMq__Username
+        - name: RabbitMq__Password
+          valueFrom:
+            secretKeyRef:
+              name: gateway-secret
+              key: RabbitMq__Password
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3

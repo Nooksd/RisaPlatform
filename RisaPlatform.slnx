@@ -1,20 +1,11 @@
 <Solution>
   <Folder Name="/docker/" />
-  <Folder Name="/docker/Auth/">
-    <File Path=".dockerignore" />
-    <File Path="Auth.Api/Dockerfile" />
-  </Folder>
-  <Folder Name="/docker/Billing/">
-    <File Path=".dockerignore" />
-    <File Path="Billing.Api/Dockerfile" />
-  </Folder>
-  <Folder Name="/docker/CRM/">
-    <File Path=".dockerignore" />
-    <File Path="CRM.Api/Dockerfile" />
-  </Folder>
+  <Folder Name="/docker/Auth/" />
+  <Folder Name="/docker/Billing/" />
+  <Folder Name="/docker/CRM/" />
   <Folder Name="/docker/Gateway/">
     <File Path=".dockerignore" />
-    <File Path="Api/Dockerfile" />
+    <File Path="Gateway.Dockerfile" />
   </Folder>
   <Folder Name="/k8s/" />
   <Folder Name="/k8s/Auth/">
@@ -25,11 +16,19 @@
   </Folder>
   <Folder Name="/k8s/Billing/" />
   <Folder Name="/k8s/CRM/" />
-  <Folder Name="/k8s/Gateway/" />
+  <Folder Name="/k8s/Gateway/">
+    <File Path="gateway-configmap.yaml" />
+    <File Path="gateway-deployment.yaml" />
+    <File Path="gateway-horizontalpodautoscaler.yaml" />
+    <File Path="gateway-namespace.yaml" />
+    <File Path="gateway-secret.yaml" />
+    <File Path="gateway-service.yaml" />
+  </Folder>
+  <Folder Name="/k8s/Ingress/" />
   <Folder Name="/k8s/Postgres/">
     <File Path="postgres-configmap.yaml" />
     <File Path="postgres-namespace.yaml" />
-    <File Path="postgres-persistentvolumeclaims.yaml" />
+    <File Path="postgres-persistentvolumeclaim.yaml" />
     <File Path="postgres-secret.yaml" />
     <File Path="postgres-service.yaml" />
     <File Path="postgres-statefulset.yaml" />
@@ -39,6 +38,14 @@
     <File Path="rabbitmq-deployment.yaml" />
     <File Path="rabbitmq-namespace.yaml" />
     <File Path="rabbitmq-service.yaml" />
+  </Folder>
+  <Folder Name="/k8s/Redis/">
+    <File Path="redis-deployment.yaml" />
+    <File Path="redis-persistentvolumeclaim.yaml" />
+    <File Path="redis-service.yaml" />
+  </Folder>
+  <Folder Name="/scripts/">
+    <File Path="deploy-gateway.sh" />
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Auth/">
