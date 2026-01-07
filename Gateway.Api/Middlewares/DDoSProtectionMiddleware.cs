@@ -1,4 +1,6 @@
-﻿namespace Gateway.Api.Middlewares;
+﻿using Gateway.Api.Services.Interfaces;
+
+namespace Gateway.Api.Middlewares;
 
 public sealed class DDoSProtectionMiddleware
 {

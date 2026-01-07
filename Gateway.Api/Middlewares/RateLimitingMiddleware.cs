@@ -1,27 +1,20 @@
-﻿namespace Gateway.Api.Middlewares;
+﻿using Gateway.Api.Services.Interfaces;
 
-public sealed class RateLimitingMiddleware
+namespace Gateway.Api.Middlewares;
+
+public sealed class RateLimitingMiddleware(
+    RequestDelegate next,
+    IRateLimitService rateLimitService,
+    ILogger<RateLimitingMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly IRateLimitService _rateLimitService;
-    private readonly ILogger<RateLimitingMiddleware> _logger;
-
-    public RateLimitingMiddleware(
-        RequestDelegate next,
-        IRateLimitService rateLimitService,
-        ILogger<RateLimitingMiddleware> logger)
-    {
-        _next = next;
-        _rateLimitService = rateLimitService;
-        _logger = logger;
-    }
+    private readonly RequestDelegate _next = next;
+    private readonly IRateLimitService _rateLimitService = rateLimitService;
+    private readonly ILogger<RateLimitingMiddleware> _logger = logger;
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Obter IP real (considerando proxy/ingress)
         var ipAddress = GetClientIpAddress(context);
 
-        // Verificar rate limit
         var (allowed, retryAfter) = await _rateLimitService.IsAllowedAsync(ipAddress);
 
         if (!allowed)
@@ -31,7 +24,7 @@ public sealed class RateLimitingMiddleware
                 ipAddress,
                 retryAfter);
 
-            context.Response.StatusCode = 429; // Too Many Requests
+            context.Response.StatusCode = 429;
             context.Response.Headers["Retry-After"] = retryAfter.ToString();
             context.Response.Headers["X-RateLimit-Limit"] = "100";
             context.Response.Headers["X-RateLimit-Remaining"] = "0";
@@ -47,7 +40,6 @@ public sealed class RateLimitingMiddleware
             return;
         }
 
-        // Adicionar headers informativos
         var remaining = await _rateLimitService.GetRemainingRequestsAsync(ipAddress);
         context.Response.Headers["X-RateLimit-Limit"] = "100";
         context.Response.Headers["X-RateLimit-Remaining"] = remaining.ToString();
@@ -57,7 +49,6 @@ public sealed class RateLimitingMiddleware
 
     private static string GetClientIpAddress(HttpContext context)
     {
-        //順序: X-Forwarded-For (Ingress/Proxy) → X-Real-IP → RemoteIpAddress
         var xForwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
         if (!string.IsNullOrEmpty(xForwardedFor))
         {

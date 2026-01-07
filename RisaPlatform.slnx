@@ -24,7 +24,16 @@
     <File Path="gateway-secret.yaml" />
     <File Path="gateway-service.yaml" />
   </Folder>
-  <Folder Name="/k8s/Ingress/" />
+  <Folder Name="/k8s/Ingress/">
+    <File Path="cert-manager-issuer-staging.yaml" />
+    <File Path="cert-manager-issuer.yaml" />
+    <File Path="default-backend.yaml" />
+    <File Path="igress-custom-headers.yaml" />
+    <File Path="ingress-configmap.yaml" />
+    <File Path="ingress.yaml" />
+    <File Path="monitoring.yaml" />
+    <File Path="rate-limit-whitelist.yaml" />
+  </Folder>
   <Folder Name="/k8s/Postgres/">
     <File Path="postgres-configmap.yaml" />
     <File Path="postgres-namespace.yaml" />
