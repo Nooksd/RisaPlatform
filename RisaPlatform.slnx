@@ -7,51 +7,133 @@
     <File Path=".dockerignore" />
     <File Path="Gateway.Dockerfile" />
   </Folder>
-  <Folder Name="/k8s/" />
-  <Folder Name="/k8s/Auth/">
-    <File Path="auth-deployment.yaml" />
-    <File Path="auth-namespace.yaml" />
-    <File Path="auth-secret.yaml" />
-    <File Path="auth-service.yaml" />
-  </Folder>
-  <Folder Name="/k8s/Billing/" />
-  <Folder Name="/k8s/CRM/" />
-  <Folder Name="/k8s/Gateway/">
-    <File Path="gateway-configmap.yaml" />
-    <File Path="gateway-deployment.yaml" />
-    <File Path="gateway-horizontalpodautoscaler.yaml" />
-    <File Path="gateway-namespace.yaml" />
-    <File Path="gateway-secret.yaml" />
-    <File Path="gateway-service.yaml" />
-  </Folder>
-  <Folder Name="/k8s/Ingress/">
-    <File Path="cert-manager-issuer-staging.yaml" />
-    <File Path="cert-manager-issuer.yaml" />
-    <File Path="default-backend.yaml" />
-    <File Path="igress-custom-headers.yaml" />
-    <File Path="ingress-configmap.yaml" />
-    <File Path="ingress.yaml" />
-    <File Path="monitoring.yaml" />
-    <File Path="rate-limit-whitelist.yaml" />
-  </Folder>
-  <Folder Name="/k8s/Postgres/">
-    <File Path="postgres-configmap.yaml" />
-    <File Path="postgres-namespace.yaml" />
-    <File Path="postgres-persistentvolumeclaim.yaml" />
-    <File Path="postgres-secret.yaml" />
-    <File Path="postgres-service.yaml" />
-    <File Path="postgres-statefulset.yaml" />
-  </Folder>
-  <Folder Name="/k8s/RabbitMQ/">
-    <File Path="rabbitmq-configmap.yaml" />
-    <File Path="rabbitmq-deployment.yaml" />
-    <File Path="rabbitmq-namespace.yaml" />
-    <File Path="rabbitmq-service.yaml" />
-  </Folder>
-  <Folder Name="/k8s/Redis/">
-    <File Path="redis-deployment.yaml" />
-    <File Path="redis-persistentvolumeclaim.yaml" />
-    <File Path="redis-service.yaml" />
+  <Folder Name="/k8s/">
+    <Project Path="k8s.auth/" Type="Website" DisplayName="k8s.auth">
+      <BuildType Project="Debug" />
+      <Properties Name="WebsiteProperties">
+        <Property Name="Debug.AspNetCompiler.Debug" Value="&quot;True&quot;" />
+        <Property Name="Debug.AspNetCompiler.FixedNames" Value="&quot;false&quot;" />
+        <Property Name="Debug.AspNetCompiler.ForceOverwrite" Value="&quot;true&quot;" />
+        <Property Name="Debug.AspNetCompiler.PhysicalPath" Value="&quot;k8s.auth\&quot;" />
+        <Property Name="Debug.AspNetCompiler.TargetPath" Value="&quot;PrecompiledWeb\localhost_60317\&quot;" />
+        <Property Name="Debug.AspNetCompiler.Updateable" Value="&quot;true&quot;" />
+        <Property Name="Debug.AspNetCompiler.VirtualPath" Value="&quot;/localhost_60317&quot;" />
+        <Property Name="Release.AspNetCompiler.Debug" Value="&quot;False&quot;" />
+        <Property Name="Release.AspNetCompiler.FixedNames" Value="&quot;false&quot;" />
+        <Property Name="Release.AspNetCompiler.ForceOverwrite" Value="&quot;true&quot;" />
+        <Property Name="Release.AspNetCompiler.PhysicalPath" Value="&quot;k8s.auth\&quot;" />
+        <Property Name="Release.AspNetCompiler.TargetPath" Value="&quot;PrecompiledWeb\localhost_60317\&quot;" />
+        <Property Name="Release.AspNetCompiler.Updateable" Value="&quot;true&quot;" />
+        <Property Name="Release.AspNetCompiler.VirtualPath" Value="&quot;/localhost_60317&quot;" />
+        <Property Name="TargetFrameworkMoniker" Value="&quot;.NETFramework,Version%3Dv4.8&quot;" />
+        <Property Name="VWDPort" Value="&quot;60317&quot;" />
+      </Properties>
+    </Project>
+    <Project Path="k8s.gateway/" Type="Website" DisplayName="k8s.gateway">
+      <BuildType Project="Debug" />
+      <Properties Name="WebsiteProperties">
+        <Property Name="Debug.AspNetCompiler.Debug" Value="&quot;True&quot;" />
+        <Property Name="Debug.AspNetCompiler.FixedNames" Value="&quot;false&quot;" />
+        <Property Name="Debug.AspNetCompiler.ForceOverwrite" Value="&quot;true&quot;" />
+        <Property Name="Debug.AspNetCompiler.PhysicalPath" Value="&quot;k8s.gateway\&quot;" />
+        <Property Name="Debug.AspNetCompiler.TargetPath" Value="&quot;PrecompiledWeb\localhost_60722\&quot;" />
+        <Property Name="Debug.AspNetCompiler.Updateable" Value="&quot;true&quot;" />
+        <Property Name="Debug.AspNetCompiler.VirtualPath" Value="&quot;/localhost_60722&quot;" />
+        <Property Name="Release.AspNetCompiler.Debug" Value="&quot;False&quot;" />
+        <Property Name="Release.AspNetCompiler.FixedNames" Value="&quot;false&quot;" />
+        <Property Name="Release.AspNetCompiler.ForceOverwrite" Value="&quot;true&quot;" />
+        <Property Name="Release.AspNetCompiler.PhysicalPath" Value="&quot;k8s.gateway\&quot;" />
+        <Property Name="Release.AspNetCompiler.TargetPath" Value="&quot;PrecompiledWeb\localhost_60722\&quot;" />
+        <Property Name="Release.AspNetCompiler.Updateable" Value="&quot;true&quot;" />
+        <Property Name="Release.AspNetCompiler.VirtualPath" Value="&quot;/localhost_60722&quot;" />
+        <Property Name="TargetFrameworkMoniker" Value="&quot;.NETFramework,Version%3Dv4.8&quot;" />
+        <Property Name="VWDPort" Value="&quot;60722&quot;" />
+      </Properties>
+    </Project>
+    <Project Path="k8s.ingress/" Type="Website" DisplayName="k8s.ingress">
+      <BuildType Project="Debug" />
+      <Properties Name="WebsiteProperties">
+        <Property Name="Debug.AspNetCompiler.Debug" Value="&quot;True&quot;" />
+        <Property Name="Debug.AspNetCompiler.FixedNames" Value="&quot;false&quot;" />
+        <Property Name="Debug.AspNetCompiler.ForceOverwrite" Value="&quot;true&quot;" />
+        <Property Name="Debug.AspNetCompiler.PhysicalPath" Value="&quot;k8s.ingress\&quot;" />
+        <Property Name="Debug.AspNetCompiler.TargetPath" Value="&quot;PrecompiledWeb\localhost_61689\&quot;" />
+        <Property Name="Debug.AspNetCompiler.Updateable" Value="&quot;true&quot;" />
+        <Property Name="Debug.AspNetCompiler.VirtualPath" Value="&quot;/localhost_61689&quot;" />
+        <Property Name="Release.AspNetCompiler.Debug" Value="&quot;False&quot;" />
+        <Property Name="Release.AspNetCompiler.FixedNames" Value="&quot;false&quot;" />
+        <Property Name="Release.AspNetCompiler.ForceOverwrite" Value="&quot;true&quot;" />
+        <Property Name="Release.AspNetCompiler.PhysicalPath" Value="&quot;k8s.ingress\&quot;" />
+        <Property Name="Release.AspNetCompiler.TargetPath" Value="&quot;PrecompiledWeb\localhost_61689\&quot;" />
+        <Property Name="Release.AspNetCompiler.Updateable" Value="&quot;true&quot;" />
+        <Property Name="Release.AspNetCompiler.VirtualPath" Value="&quot;/localhost_61689&quot;" />
+        <Property Name="TargetFrameworkMoniker" Value="&quot;.NETFramework,Version%3Dv4.8&quot;" />
+        <Property Name="VWDPort" Value="&quot;61689&quot;" />
+      </Properties>
+    </Project>
+    <Project Path="k8s.postgres/" Type="Website" DisplayName="k8s.postgres">
+      <BuildType Project="Debug" />
+      <Properties Name="WebsiteProperties">
+        <Property Name="Debug.AspNetCompiler.Debug" Value="&quot;True&quot;" />
+        <Property Name="Debug.AspNetCompiler.FixedNames" Value="&quot;false&quot;" />
+        <Property Name="Debug.AspNetCompiler.ForceOverwrite" Value="&quot;true&quot;" />
+        <Property Name="Debug.AspNetCompiler.PhysicalPath" Value="&quot;k8s.postgres\&quot;" />
+        <Property Name="Debug.AspNetCompiler.TargetPath" Value="&quot;PrecompiledWeb\localhost_61868\&quot;" />
+        <Property Name="Debug.AspNetCompiler.Updateable" Value="&quot;true&quot;" />
+        <Property Name="Debug.AspNetCompiler.VirtualPath" Value="&quot;/localhost_61868&quot;" />
+        <Property Name="Release.AspNetCompiler.Debug" Value="&quot;False&quot;" />
+        <Property Name="Release.AspNetCompiler.FixedNames" Value="&quot;false&quot;" />
+        <Property Name="Release.AspNetCompiler.ForceOverwrite" Value="&quot;true&quot;" />
+        <Property Name="Release.AspNetCompiler.PhysicalPath" Value="&quot;k8s.postgres\&quot;" />
+        <Property Name="Release.AspNetCompiler.TargetPath" Value="&quot;PrecompiledWeb\localhost_61868\&quot;" />
+        <Property Name="Release.AspNetCompiler.Updateable" Value="&quot;true&quot;" />
+        <Property Name="Release.AspNetCompiler.VirtualPath" Value="&quot;/localhost_61868&quot;" />
+        <Property Name="TargetFrameworkMoniker" Value="&quot;.NETFramework,Version%3Dv4.8&quot;" />
+        <Property Name="VWDPort" Value="&quot;61868&quot;" />
+      </Properties>
+    </Project>
+    <Project Path="k8s.rabbitmq/" Type="Website" DisplayName="k8s.rabbitmq">
+      <BuildType Project="Debug" />
+      <Properties Name="WebsiteProperties">
+        <Property Name="Debug.AspNetCompiler.Debug" Value="&quot;True&quot;" />
+        <Property Name="Debug.AspNetCompiler.FixedNames" Value="&quot;false&quot;" />
+        <Property Name="Debug.AspNetCompiler.ForceOverwrite" Value="&quot;true&quot;" />
+        <Property Name="Debug.AspNetCompiler.PhysicalPath" Value="&quot;k8s.rabbitmq\&quot;" />
+        <Property Name="Debug.AspNetCompiler.TargetPath" Value="&quot;PrecompiledWeb\localhost_62042\&quot;" />
+        <Property Name="Debug.AspNetCompiler.Updateable" Value="&quot;true&quot;" />
+        <Property Name="Debug.AspNetCompiler.VirtualPath" Value="&quot;/localhost_62042&quot;" />
+        <Property Name="Release.AspNetCompiler.Debug" Value="&quot;False&quot;" />
+        <Property Name="Release.AspNetCompiler.FixedNames" Value="&quot;false&quot;" />
+        <Property Name="Release.AspNetCompiler.ForceOverwrite" Value="&quot;true&quot;" />
+        <Property Name="Release.AspNetCompiler.PhysicalPath" Value="&quot;k8s.rabbitmq\&quot;" />
+        <Property Name="Release.AspNetCompiler.TargetPath" Value="&quot;PrecompiledWeb\localhost_62042\&quot;" />
+        <Property Name="Release.AspNetCompiler.Updateable" Value="&quot;true&quot;" />
+        <Property Name="Release.AspNetCompiler.VirtualPath" Value="&quot;/localhost_62042&quot;" />
+        <Property Name="TargetFrameworkMoniker" Value="&quot;.NETFramework,Version%3Dv4.8&quot;" />
+        <Property Name="VWDPort" Value="&quot;62042&quot;" />
+      </Properties>
+    </Project>
+    <Project Path="k8s.redis/" Type="Website" DisplayName="k8s.redis">
+      <BuildType Project="Debug" />
+      <Properties Name="WebsiteProperties">
+        <Property Name="Debug.AspNetCompiler.Debug" Value="&quot;True&quot;" />
+        <Property Name="Debug.AspNetCompiler.FixedNames" Value="&quot;false&quot;" />
+        <Property Name="Debug.AspNetCompiler.ForceOverwrite" Value="&quot;true&quot;" />
+        <Property Name="Debug.AspNetCompiler.PhysicalPath" Value="&quot;k8s.redis\&quot;" />
+        <Property Name="Debug.AspNetCompiler.TargetPath" Value="&quot;PrecompiledWeb\localhost_62186\&quot;" />
+        <Property Name="Debug.AspNetCompiler.Updateable" Value="&quot;true&quot;" />
+        <Property Name="Debug.AspNetCompiler.VirtualPath" Value="&quot;/localhost_62186&quot;" />
+        <Property Name="Release.AspNetCompiler.Debug" Value="&quot;False&quot;" />
+        <Property Name="Release.AspNetCompiler.FixedNames" Value="&quot;false&quot;" />
+        <Property Name="Release.AspNetCompiler.ForceOverwrite" Value="&quot;true&quot;" />
+        <Property Name="Release.AspNetCompiler.PhysicalPath" Value="&quot;k8s.redis\&quot;" />
+        <Property Name="Release.AspNetCompiler.TargetPath" Value="&quot;PrecompiledWeb\localhost_62186\&quot;" />
+        <Property Name="Release.AspNetCompiler.Updateable" Value="&quot;true&quot;" />
+        <Property Name="Release.AspNetCompiler.VirtualPath" Value="&quot;/localhost_62186&quot;" />
+        <Property Name="TargetFrameworkMoniker" Value="&quot;.NETFramework,Version%3Dv4.8&quot;" />
+        <Property Name="VWDPort" Value="&quot;62186&quot;" />
+      </Properties>
+    </Project>
   </Folder>
   <Folder Name="/scripts/">
     <File Path="deploy-gateway.sh" />

@@ -43,6 +43,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // Redis
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
 var redisConnection = ConnectionMultiplexer.Connect(builder.Configuration["Redis:ConnectionString"]!);
 builder.Services.AddSingleton<IConnectionMultiplexer>(redisConnection);
 builder.Services.AddSingleton<ISubscriptionCache, SubscriptionCache>();
@@ -63,22 +64,24 @@ builder.Services.AddRabbitMqConsumer<TenantPaymentConfirmedEvent, TenantPaymentC
 builder.Services.AddRabbitMqConsumer<TenantGracePeriodGrantedEvent, TenantGracePeriodGrantedHandler>();
 
 // HttpClient para proxy reverso
-builder.Services.AddHttpClient("AuthService", client =>
-{
-    client.BaseAddress = new Uri("http://auth-api.auth-service.svc.cluster.local");
-});
+//builder.Services.AddHttpClient("AuthService", client =>
+//{
+//    client.BaseAddress = new Uri("http://auth-api.auth-service.svc.cluster.local");
+//});
 
-builder.Services.AddHttpClient("BillingService", client =>
-{
-    client.BaseAddress = new Uri("http://billing-api.billing-service.svc.cluster.local");
-});
+//builder.Services.AddHttpClient("BillingService", client =>
+//{
+//    client.BaseAddress = new Uri("http://billing-api.billing-service.svc.cluster.local");
+//});
 
-builder.Services.AddHttpClient("CrmService", client =>
-{
-    client.BaseAddress = new Uri("http://crm-api.crm-service.svc.cluster.local");
-});
+//builder.Services.AddHttpClient("CrmService", client =>
+//{
+//    client.BaseAddress = new Uri("http://crm-api.crm-service.svc.cluster.local");
+//});
 
 builder.Services.AddSingleton<IProxyService, ProxyService>();
+builder.Services.AddSingleton<IRateLimitService, RateLimitService>();
+builder.Services.AddSingleton<IDDoSProtectionService, DDoSProtectionService>();
 
 var app = builder.Build();
 

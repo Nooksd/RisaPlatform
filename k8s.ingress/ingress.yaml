@@ -58,11 +58,13 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - api.risaplatform.com
-    - gateway.risaplatform.com
+    - platform-api.risadev.com
+    - platform.risadev.com
+    - academy.risadev.com
+    - academy-api.risadev.com
     secretName: gateway-tls-secret
   rules:
-  - host: api.risaplatform.com
+  - host: platform-api.risadev.com
     http:
       paths:
       - path: /
@@ -72,13 +74,36 @@ spec:
             name: gateway-api
             port:
               number: 80
-  - host: gateway.risaplatform.com
+
+  - host: platform.risadev.com
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: gateway-api
+            name: platform-frontend
             port:
               number: 80
+
+  - host: academy.risadev.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: academy-frontend
+            port:
+              number: 80
+      
+  - host: academy-api.risadev.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: academy-api
+            port:
+              number: 8080
