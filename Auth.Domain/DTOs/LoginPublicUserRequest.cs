@@ -2,5 +2,6 @@
 
 public sealed record LoginPublicUserRequest(
     string Module,
+    Guid TenantId,
     string Email,
     string Password);

@@ -20,13 +20,13 @@ spec:
           image: risa/auth-api:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
+            - containerPort: 8001
               name: http
           env:
             - name: ASPNETCORE_ENVIRONMENT
               value: "Production"
             - name: ASPNETCORE_URLS
-              value: "http://+:8080"
+              value: "http://+:8001"
             - name: ConnectionStrings__AuthDb
               valueFrom:
                 secretKeyRef:
@@ -56,7 +56,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: 8080
+              port: 8001
             initialDelaySeconds: 15
             periodSeconds: 20
             timeoutSeconds: 3
@@ -64,7 +64,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /health
-              port: 8080
+              port: 8001
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 3

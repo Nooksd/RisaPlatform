@@ -25,55 +25,24 @@ spec:
           protocol: TCP
         env:
         - name: ASPNETCORE_ENVIRONMENT
-          valueFrom:
-            configMapKeyRef:
-              name: gateway-config
-              key: ASPNETCORE_ENVIRONMENT
+          value: "Production"
         - name: ASPNETCORE_URLS
-          valueFrom:
-            configMapKeyRef:
-              name: gateway-config
-              key: ASPNETCORE_URLS
-        - name: Jwt__Issuer
-          valueFrom:
-            configMapKeyRef:
-              name: gateway-config
-              key: Jwt__Issuer
-        - name: Jwt__Audience
-          valueFrom:
-            configMapKeyRef:
-              name: gateway-config
-              key: Jwt__Audience
+          value: "http://+:8080"
         - name: Jwt__Key
           valueFrom:
             secretKeyRef:
               name: gateway-secret
               key: Jwt__Key
-        - name: Redis__ConnectionString
-          valueFrom:
-            configMapKeyRef:
-              name: gateway-config
-              key: Redis__ConnectionString
-        - name: RabbitMq__Host
-          valueFrom:
-            configMapKeyRef:
-              name: gateway-config
-              key: RabbitMq__Host
-        - name: RabbitMq__Port
-          valueFrom:
-            configMapKeyRef:
-              name: gateway-config
-              key: RabbitMq__Port
-        - name: RabbitMq__Username
-          valueFrom:
-            configMapKeyRef:
-              name: gateway-config
-              key: RabbitMq__Username
         - name: RabbitMq__Password
           valueFrom:
             secretKeyRef:
               name: gateway-secret
               key: RabbitMq__Password
+        volumeMounts:
+        - name: config
+          mountPath: /app/appsettings.Production.json
+          subPath: appsettings.json
+          readOnly: true
         resources:
           requests:
             memory: "256Mi"
@@ -81,19 +50,10 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
+      volumes:
+      - name: config
+        configMap:
+          name: gateway-config
+          items:
+          - key: appsettings.json
+            path: appsettings.json

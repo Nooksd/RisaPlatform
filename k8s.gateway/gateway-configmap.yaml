@@ -4,11 +4,174 @@ metadata:
   name: gateway-config
   namespace: gateway
 data:
-  ASPNETCORE_ENVIRONMENT: "Production"
-  ASPNETCORE_URLS: "http://+:8080"
-  Jwt__Issuer: "RisaPlatform"
-  Jwt__Audience: "RisaPlatform"
-  Redis__ConnectionString: "redis.risa-infra.svc.cluster.local:6379"
-  RabbitMq__Host: "rabbitmq.risa-infra.svc.cluster.local"
-  RabbitMq__Port: "5672"
-  RabbitMq__Username: "guest"
+  appsettings.json: |
+    {
+      "Logging": {
+        "LogLevel": {
+          "Default": "Information",
+          "Microsoft.AspNetCore": "Warning",
+          "Yarp": "Information"
+        }
+      },
+      "AllowedHosts": "*",
+      
+      "Jwt": {
+        "Issuer": "RisaPlatform",
+        "Audience": "RisaPlatform"
+      },
+      
+      "Redis": {
+        "ConnectionString": "redis.risa-infra.svc.cluster.local:6379"
+      },
+      
+      "RabbitMq": {
+        "Host": "rabbitmq.risa-infra.svc.cluster.local",
+        "Port": "5672",
+        "Username": "admin"
+      },
+      
+      "ReverseProxy": {
+        "Routes": {
+          "auth-tenant-route": {
+            "ClusterId": "auth-cluster",
+            "Match": {
+              "Path": "/api/auth/tenant/{**catch-all}"
+            },
+            "Transforms": [
+              {
+                "PathPattern": "/api/auth/tenant/{**catch-all}"
+              }
+            ]
+          },
+          "auth-refresh-route": {
+            "ClusterId": "auth-cluster",
+            "Match": {
+              "Path": "/api/auth/refresh"
+            }
+          },
+          "auth-logout-route": {
+            "ClusterId": "auth-cluster",
+            "Match": {
+              "Path": "/api/auth/logout"
+            }
+          },
+          "auth-me-route": {
+            "ClusterId": "auth-cluster",
+            "Match": {
+              "Path": "/api/auth/me"
+            }
+          },
+          "auth-tenant-scoped-route": {
+            "ClusterId": "auth-cluster",
+            "Match": {
+              "Path": "/api/{tenantId}/auth/{**catch-all}"
+            },
+            "Transforms": [
+              {
+                "PathPattern": "/api/{tenantId}/auth/{**catch-all}"
+              }
+            ]
+          },
+          "billing-route": {
+            "ClusterId": "billing-cluster",
+            "Match": {
+              "Path": "/api/{tenantId}/billing/{**catch-all}"
+            },
+            "Transforms": [
+              {
+                "PathPattern": "/api/{tenantId}/billing/{**catch-all}"
+              }
+            ]
+          },
+          "crm-route": {
+            "ClusterId": "crm-cluster",
+            "Match": {
+              "Path": "/api/{tenantId}/crm/{**catch-all}"
+            },
+            "Transforms": [
+              {
+                "PathPattern": "/api/{tenantId}/crm/{**catch-all}"
+              }
+            ]
+          }
+        },
+        
+        "Clusters": {
+          "auth-cluster": {
+            "Destinations": {
+              "auth-primary": {
+                "Address": "http://auth-api.auth.svc.cluster.local"
+              }
+            },
+            "HealthCheck": {
+              "Active": {
+                "Enabled": true,
+                "Interval": "00:00:30",
+                "Timeout": "00:00:10",
+                "Policy": "ConsecutiveFailures",
+                "Path": "/health"
+              },
+              "Passive": {
+                "Enabled": true,
+                "Policy": "TransportFailureRate",
+                "ReactivationPeriod": "00:01:00"
+              }
+            },
+            "HttpRequest": {
+              "Timeout": "00:01:00"
+            }
+          },
+          
+          "billing-cluster": {
+            "Destinations": {
+              "billing-primary": {
+                "Address": "http://billing-api.billing.svc.cluster.local"
+              }
+            },
+            "HealthCheck": {
+              "Active": {
+                "Enabled": true,
+                "Interval": "00:00:30",
+                "Timeout": "00:00:10",
+                "Policy": "ConsecutiveFailures",
+                "Path": "/health"
+              },
+              "Passive": {
+                "Enabled": true,
+                "Policy": "TransportFailureRate",
+                "ReactivationPeriod": "00:01:00"
+              }
+            },
+            "HttpRequest": {
+              "Timeout": "00:01:00"
+            }
+          },
+          
+          "crm-cluster": {
+            "Destinations": {
+              "crm-primary": {
+                "Address": "http://crm-api.crm.svc.cluster.local"
+              }
+            },
+            "LoadBalancingPolicy": "RoundRobin",
+            "HealthCheck": {
+              "Active": {
+                "Enabled": true,
+                "Interval": "00:00:30",
+                "Timeout": "00:00:10",
+                "Policy": "ConsecutiveFailures",
+                "Path": "/health"
+              },
+              "Passive": {
+                "Enabled": true,
+                "Policy": "TransportFailureRate",
+                "ReactivationPeriod": "00:01:00"
+              }
+            },
+            "HttpRequest": {
+              "Timeout": "00:01:00"
+            }
+          }
+        }
+      }
+    }

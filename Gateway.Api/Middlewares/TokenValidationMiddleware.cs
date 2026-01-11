@@ -1,4 +1,6 @@
-﻿namespace Gateway.Api.Middlewares;
+﻿using Gateway.Api.Middlewares.Policy;
+
+namespace Gateway.Api.Middlewares;
 
 public sealed class TokenValidationMiddleware(RequestDelegate next, ILogger<TokenValidationMiddleware> logger)
 {
@@ -9,15 +11,12 @@ public sealed class TokenValidationMiddleware(RequestDelegate next, ILogger<Toke
     {
         var path = context.Request.Path.Value?.ToLower() ?? "";
 
-        if (path.StartsWith("/api/auth/tenant/register") ||
-            path.StartsWith("/api/auth/tenant/login") ||
-            path.Contains("/api/auth/") && path.Contains("/public/register") ||
-            path.Contains("/api/auth/") && path.Contains("/public/login") ||
-            path.StartsWith("/api/auth/refresh"))
+        if (GatewayRoutePolicy.IsPublic(context))
         {
             await _next(context);
             return;
         }
+
 
         if (!context.User.Identity?.IsAuthenticated ?? true)
         {

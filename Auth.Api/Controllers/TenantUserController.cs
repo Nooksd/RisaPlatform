@@ -11,7 +11,7 @@ namespace Auth.Api.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/tenant-users")]
+[Route("tenant-users")]
 public sealed class TenantUserController(ITenantUserService tenantUserService, IMapper mapper) : ControllerBase
 {
     private readonly ITenantUserService _tenantUserService = tenantUserService;

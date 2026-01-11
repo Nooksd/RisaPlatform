@@ -2,27 +2,19 @@
 
 namespace Gateway.Api.Middlewares;
 
-public sealed class DDoSProtectionMiddleware
+public sealed class DDoSProtectionMiddleware(
+    RequestDelegate next,
+    IDDoSProtectionService ddosService,
+    ILogger<DDoSProtectionMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly IDDoSProtectionService _ddosService;
-    private readonly ILogger<DDoSProtectionMiddleware> _logger;
-
-    public DDoSProtectionMiddleware(
-        RequestDelegate next,
-        IDDoSProtectionService ddosService,
-        ILogger<DDoSProtectionMiddleware> logger)
-    {
-        _next = next;
-        _ddosService = ddosService;
-        _logger = logger;
-    }
+    private readonly RequestDelegate _next = next;
+    private readonly IDDoSProtectionService _ddosService = ddosService;
+    private readonly ILogger<DDoSProtectionMiddleware> _logger = logger;
 
     public async Task InvokeAsync(HttpContext context)
     {
         var ipAddress = GetClientIpAddress(context);
 
-        // Verificar se IP está na blacklist
         if (await _ddosService.IsBlacklistedAsync(ipAddress))
         {
             _logger.LogWarning("Blocked request from blacklisted IP: {IpAddress}", ipAddress);
@@ -36,7 +28,6 @@ public sealed class DDoSProtectionMiddleware
             return;
         }
 
-        // Detectar padrões suspeitos
         var isSuspicious = await _ddosService.DetectSuspiciousPatternAsync(ipAddress, context.Request.Path);
 
         if (isSuspicious)
@@ -46,10 +37,8 @@ public sealed class DDoSProtectionMiddleware
                 ipAddress,
                 context.Request.Path);
 
-            // Adicionar ao sistema de pontuação de ameaças
             var threatScore = await _ddosService.IncrementThreatScoreAsync(ipAddress);
 
-            // Se score muito alto, adicionar à blacklist temporária
             if (threatScore > 100)
             {
                 await _ddosService.AddToBlacklistAsync(ipAddress, TimeSpan.FromHours(1));

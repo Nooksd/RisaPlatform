@@ -1,32 +1,22 @@
 {
   "profiles": {
-    "http": {
+    "Auth.Api (Development)": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:5154"
+      "applicationUrl": "http://localhost:8001"
     },
-    "https": {
-      "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "swagger",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:7281;http://localhost:5154"
-    },
-    "Container (Dockerfile)": {
+    "Auth.Api (Docker)": {
       "commandName": "Docker",
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
       "environmentVariables": {
-        "ASPNETCORE_HTTPS_PORTS": "8081",
-        "ASPNETCORE_HTTP_PORTS": "8080"
+        "ASPNETCORE_HTTP_PORTS": "8001"
       },
       "publishAllPorts": true,
-      "useSSL": true
+      "useSSL": false,
+      "httpPort": 8001
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json"

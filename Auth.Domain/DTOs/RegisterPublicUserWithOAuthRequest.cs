@@ -2,4 +2,5 @@
 
 public sealed record RegisterPublicUserWithOAuthRequest(
     string Module,
+    Guid TenantId,
     string IdToken);

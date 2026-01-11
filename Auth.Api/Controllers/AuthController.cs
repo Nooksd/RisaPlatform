@@ -11,7 +11,6 @@ using System.Text.Json;
 namespace Auth.Api.Controllers;
 
 [ApiController]
-[Route("api/auth")]
 public sealed class AuthController(
     IAuthService authService,
     IOptions<CookieSettings> cookieSettings) : ControllerBase
@@ -21,7 +20,7 @@ public sealed class AuthController(
 
     // ===== TENANT ACCOUNT =====
 
-    [HttpPost("tenant/register")]
+    [HttpPost("register/tenant-account")]
     public async Task<IActionResult> RegisterTenant([FromBody] RegisterTenantRequest request, CancellationToken ct)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
@@ -38,7 +37,7 @@ public sealed class AuthController(
         return Ok(result.Value);
     }
 
-    [HttpPost("tenant/register/oauth")]
+    [HttpPost("register/oauth/tenant-account")]
     public async Task<IActionResult> RegisterTenantWithOAuth([FromBody] RegisterTenantWithOAuthRequest request, CancellationToken ct)
     {
         var result = await _authService.RegisterTenantWithOAuthAsync(request, ct);
@@ -52,7 +51,7 @@ public sealed class AuthController(
         return Ok(result.Value);
     }
 
-    [HttpPost("tenant/login")]
+    [HttpPost("login/tenant-account")]
     public async Task<IActionResult> LoginTenant([FromBody] LoginRequest request, CancellationToken ct)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
@@ -69,7 +68,7 @@ public sealed class AuthController(
         return Ok(result.Value);
     }
 
-    [HttpPost("tenant/login/oauth")]
+    [HttpPost("login/oauth/tenant-account")]
     public async Task<IActionResult> LoginTenantWithOAuth([FromBody] LoginWithOAuthRequest request, CancellationToken ct)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
@@ -88,7 +87,7 @@ public sealed class AuthController(
 
     // ===== TENANT USER =====
 
-    [HttpPost("tenantuser/login")]
+    [HttpPost("login/tenant-user")]
     public async Task<IActionResult> LoginTenantUser([FromBody] TenantUserLoginRequest request, CancellationToken ct)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
@@ -107,10 +106,10 @@ public sealed class AuthController(
 
     // ===== PUBLIC USER =====
 
-    [HttpPost("{tenantId:guid}/public/register")]
-    public async Task<IActionResult> RegisterPublicUser([FromRoute] Guid tenantId, [FromBody] RegisterPublicUserRequest request, CancellationToken ct)
+    [HttpPost("register/public-user")]
+    public async Task<IActionResult> RegisterPublicUser([FromBody] RegisterPublicUserRequest request, CancellationToken ct)
     {
-        var result = await _authService.RegisterPublicUserAsync(tenantId, request, ct);
+        var result = await _authService.RegisterPublicUserAsync(request.TenantId, request, ct);
 
         if (!result.IsSuccess)
         {
@@ -121,10 +120,10 @@ public sealed class AuthController(
         return Ok(result.Value);
     }
 
-    [HttpPost("{tenantId:guid}/public/register/oauth")]
-    public async Task<IActionResult> RegisterPublicUserWithOAuth([FromRoute] Guid tenantId, [FromBody] RegisterPublicUserWithOAuthRequest request, CancellationToken ct)
+    [HttpPost("register/oauth/public-user")]
+    public async Task<IActionResult> RegisterPublicUserWithOAuth([FromBody] RegisterPublicUserWithOAuthRequest request, CancellationToken ct)
     {
-        var result = await _authService.RegisterPublicUserWithOAuthAsync(tenantId, request, ct);
+        var result = await _authService.RegisterPublicUserWithOAuthAsync(request.TenantId, request, ct);
 
         if (!result.IsSuccess)
         {
@@ -135,13 +134,13 @@ public sealed class AuthController(
         return Ok(result.Value);
     }
 
-    [HttpPost("{tenantId:guid}/public/login")]
-    public async Task<IActionResult> LoginPublicUser([FromRoute] Guid tenantId, [FromBody] LoginPublicUserRequest request, CancellationToken ct)
+    [HttpPost("login/public-user")]
+    public async Task<IActionResult> LoginPublicUser([FromBody] LoginPublicUserRequest request, CancellationToken ct)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
-        var result = await _authService.LoginPublicUserAsync(tenantId, request, ipAddress!, userAgent, ct);
+        var result = await _authService.LoginPublicUserAsync(request.TenantId, request, ipAddress!, userAgent, ct);
 
         if (!result.IsSuccess)
         {
@@ -152,13 +151,13 @@ public sealed class AuthController(
         return Ok(result.Value);
     }
 
-    [HttpPost("{tenantId:guid}/public/login/oauth")]
-    public async Task<IActionResult> LoginPublicUserWithOAuth([FromRoute] Guid tenantId, [FromBody] LoginPublicUserWithOAuthRequest request, CancellationToken ct)
+    [HttpPost("login/oauth/public-user")]
+    public async Task<IActionResult> LoginPublicUserWithOAuth([FromBody] LoginPublicUserWithOAuthRequest request, CancellationToken ct)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
-        var result = await _authService.LoginPublicUserWithOAuthAsync(tenantId, request, ipAddress!, userAgent, ct);
+        var result = await _authService.LoginPublicUserWithOAuthAsync(request.TenantId, request, ipAddress!, userAgent, ct);
 
         if (!result.IsSuccess)
         {
@@ -262,13 +261,6 @@ public sealed class AuthController(
             tenantIds,
             moduleAccess
         });
-    }
-
-    [HttpPost("logout-all")]
-    public async Task<IActionResult> LogoutAll(CancellationToken ct)
-    {
-        ClearAuthCookies();
-        return Ok(new { message = "All local sessions cleared" });
     }
 
     private void SetAuthCookies(AuthResponse authResponse)

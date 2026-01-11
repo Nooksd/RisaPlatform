@@ -8,6 +8,7 @@
     <File Path="Gateway.Dockerfile" />
   </Folder>
   <Folder Name="/k8s/">
+    <File Path="kind-cluster-config.yaml" />
     <Project Path="k8s.auth/" Type="Website" DisplayName="k8s.auth">
       <BuildType Project="Debug" />
       <Properties Name="WebsiteProperties">

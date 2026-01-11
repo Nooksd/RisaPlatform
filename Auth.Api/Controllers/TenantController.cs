@@ -9,7 +9,7 @@ using System.Security.Claims;
 namespace Auth.Api.Controllers;
 
 [ApiController]
-[Route("api/tenants")]
+[Route("tenants")]
 public sealed class TenantController(ITenantService tenantService, IMapper mapper) : ControllerBase
 {
     private readonly ITenantService _tenantService = tenantService;

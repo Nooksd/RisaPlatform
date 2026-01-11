@@ -11,7 +11,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var jwtKey = builder.Configuration["Jwt:Key"]!;
+var jwtKey = builder.Configuration["Jwt:SecretKey"]!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = builder.Configuration["Jwt:Audience"]!;
 
@@ -29,7 +29,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ClockSkew = TimeSpan.Zero
         };
-
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
@@ -42,8 +41,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Redis
-var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
 var redisConnection = ConnectionMultiplexer.Connect(builder.Configuration["Redis:ConnectionString"]!);
 builder.Services.AddSingleton<IConnectionMultiplexer>(redisConnection);
 builder.Services.AddSingleton<ISubscriptionCache, SubscriptionCache>();
@@ -63,43 +60,27 @@ builder.Services.AddRabbitMq(rabbitMqOptions);
 builder.Services.AddRabbitMqConsumer<TenantPaymentConfirmedEvent, TenantPaymentConfirmedHandler>();
 builder.Services.AddRabbitMqConsumer<TenantGracePeriodGrantedEvent, TenantGracePeriodGrantedHandler>();
 
-// HttpClient para proxy reverso
-//builder.Services.AddHttpClient("AuthService", client =>
-//{
-//    client.BaseAddress = new Uri("http://auth-api.auth-service.svc.cluster.local");
-//});
+builder.Services
+    .AddReverseProxy()
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
-//builder.Services.AddHttpClient("BillingService", client =>
-//{
-//    client.BaseAddress = new Uri("http://billing-api.billing-service.svc.cluster.local");
-//});
-
-//builder.Services.AddHttpClient("CrmService", client =>
-//{
-//    client.BaseAddress = new Uri("http://crm-api.crm-service.svc.cluster.local");
-//});
-
-builder.Services.AddSingleton<IProxyService, ProxyService>();
 builder.Services.AddSingleton<IRateLimitService, RateLimitService>();
 builder.Services.AddSingleton<IDDoSProtectionService, DDoSProtectionService>();
 
 var app = builder.Build();
 
-// Health Checks
-//app.MapHealthEndpoints();
-
-app.UseMiddleware<DDoSProtectionMiddleware>();
-app.UseMiddleware<RateLimitingMiddleware>();
+//app.UseMiddleware<DDoSProtectionMiddleware>();
+//app.UseMiddleware<RateLimitingMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Pipeline de Middlewares
 app.UseMiddleware<TokenValidationMiddleware>();
 app.UseMiddleware<TenantValidationMiddleware>();
 app.UseMiddleware<BillingAccessMiddleware>();
 app.UseMiddleware<SubscriptionValidationMiddleware>();
 app.UseMiddleware<AccessLevelValidationMiddleware>();
-app.UseMiddleware<ProxyMiddleware>();
+
+app.MapReverseProxy();
 
 app.Run();

@@ -1,5 +1,6 @@
 ﻿namespace Gateway.Api.Middlewares;
 
+using Gateway.Api.Middlewares.Policy;
 using System.Security.Claims;
 
 public sealed class TenantValidationMiddleware(RequestDelegate next, ILogger<TenantValidationMiddleware> logger)
@@ -11,14 +12,12 @@ public sealed class TenantValidationMiddleware(RequestDelegate next, ILogger<Ten
     {
         var path = context.Request.Path.Value?.ToLower() ?? "";
 
-        if (path.StartsWith("/api/auth/tenant") ||
-            path.StartsWith("/api/auth/refresh") ||
-            path.StartsWith("/api/auth/logout") ||
-            path.StartsWith("/api/auth/me"))
+        if (GatewayRoutePolicy.IsPublic(context))
         {
             await _next(context);
             return;
         }
+
 
         var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
