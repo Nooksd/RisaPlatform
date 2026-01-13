@@ -5,7 +5,7 @@ namespace Shared.Contracts.Billing;
 public sealed record TenantGracePeriodGrantedEvent(
     Guid TenantId,
     DateTime GrantedAt,
-    TimeSpan Duration,
+    DateTime ExpiresAt,
     string[] AllowedModules
 ) : IIntegrationEvent
 {

@@ -1,0 +1,185 @@
+{
+  "vhosts": [
+    { "name": "/" }
+  ],
+  "users": [
+    {
+      "name": "admin",
+      "password": "admin123",
+      "tags": "administrator"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "billing.events",
+      "vhost": "/",
+      "type": "fanout",
+      "durable": true,
+      "auto_delete": false
+    },
+    {
+      "name": "billing.events.dlx",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false
+    },
+    {
+      "name": "tenant.deletion",
+      "vhost": "/",
+      "type": "fanout",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "gateway.billing",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "billing.events.dlx",
+        "x-dead-letter-routing-key": "gateway.billing.failed"
+      }
+    },
+    {
+      "name": "gateway.billing.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 86400000,
+        "x-max-length": 10000
+      }
+    },
+    {
+      "name": "auth.billing",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "billing.events.dlx",
+        "x-dead-letter-routing-key": "auth.billing.failed"
+      }
+    },
+    {
+      "name": "auth.billing.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 86400000,
+        "x-max-length": 10000
+      }
+    },
+    {
+      "name": "auth.deletion",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "billing.events.dlx",
+        "x-dead-letter-routing-key": "auth.deletion.failed"
+      }
+    },
+    {
+      "name": "rh.deletion",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "billing.events.dlx",
+        "x-dead-letter-routing-key": "rh.deletion.failed"
+      }
+    },
+    {
+      "name": "crm.deletion",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "billing.events.dlx",
+        "x-dead-letter-routing-key": "crm.deletion.failed"
+      }
+    },
+    {
+      "name": "storage.deletion",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "billing.events.dlx",
+        "x-dead-letter-routing-key": "storage.deletion.failed"
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "source": "billing.events",
+      "vhost": "/",
+      "destination": "gateway.billing",
+      "destination_type": "queue",
+      "routing_key": ""
+    },
+    {
+      "source": "billing.events",
+      "vhost": "/",
+      "destination": "auth.billing",
+      "destination_type": "queue",
+      "routing_key": ""
+    },
+    {
+      "source": "tenant.deletion",
+      "vhost": "/",
+      "destination": "auth.deletion",
+      "destination_type": "queue",
+      "routing_key": ""
+    },
+    {
+      "source": "tenant.deletion",
+      "vhost": "/",
+      "destination": "rh.deletion",
+      "destination_type": "queue",
+      "routing_key": ""
+    },
+    {
+      "source": "tenant.deletion",
+      "vhost": "/",
+      "destination": "crm.deletion",
+      "destination_type": "queue",
+      "routing_key": ""
+    },
+    {
+      "source": "tenant.deletion",
+      "vhost": "/",
+      "destination": "storage.deletion",
+      "destination_type": "queue",
+      "routing_key": ""
+    },
+    {
+      "source": "billing.events.dlx",
+      "vhost": "/",
+      "destination": "gateway.billing.dlq",
+      "destination_type": "queue",
+      "routing_key": "gateway.billing.failed"
+    },
+    {
+      "source": "billing.events.dlx",
+      "vhost": "/",
+      "destination": "auth.billing.dlq",
+      "destination_type": "queue",
+      "routing_key": "auth.billing.failed"
+    }
+  ]
+}

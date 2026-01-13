@@ -70,7 +70,7 @@ builder.Services.AddSingleton<IDDoSProtectionService, DDoSProtectionService>();
 var app = builder.Build();
 
 //app.UseMiddleware<DDoSProtectionMiddleware>();
-//app.UseMiddleware<RateLimitingMiddleware>();
+app.UseMiddleware<RateLimitingMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();

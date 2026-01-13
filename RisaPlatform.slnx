@@ -136,9 +136,6 @@
       </Properties>
     </Project>
   </Folder>
-  <Folder Name="/scripts/">
-    <File Path="deploy-gateway.sh" />
-  </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Auth/">
     <Project Path="Auth.Api/Auth.Api.csproj" />

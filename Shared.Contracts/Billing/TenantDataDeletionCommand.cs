@@ -2,12 +2,10 @@
 
 namespace Shared.Contracts.Billing;
 
-public sealed record TenantPaymentConfirmedEvent(
+public sealed record TenantDataDeletionCommand(
     Guid TenantId,
-    DateTime PayedAt,
-    DateTime ExpiresAt,
-    int UserCount,
-    string[] AllowedModules
+    DateTime RequestedAt,
+    string Reason
 ) : IIntegrationEvent
 {
     public Guid EventId { get; } = Guid.NewGuid();

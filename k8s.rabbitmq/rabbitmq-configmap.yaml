@@ -41,7 +41,7 @@ data:
         {
           "name": "billing.events",
           "vhost": "/",
-          "type": "topic",
+          "type": "fanout",
           "durable": true,
           "auto_delete": false
         },
@@ -51,6 +51,14 @@ data:
           "type": "topic",
           "durable": true,
           "auto_delete": false
+        },
+        {
+          "name": "tenant.deletion",
+          "vhost": "/",
+          "type": "fanout",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
         }
       ],
       "queues": [
@@ -93,6 +101,26 @@ data:
             "x-message-ttl": 86400000,
             "x-max-length": 10000
           }
+        },
+        {
+          "name": "auth.deletion",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {
+            "x-dead-letter-exchange": "billing.events.dlx",
+            "x-dead-letter-routing-key": "auth.deletion.failed"
+          }
+        },
+        {
+          "name": "crm.deletion",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {
+            "x-dead-letter-exchange": "billing.events.dlx",
+            "x-dead-letter-routing-key": "crm.deletion.failed"
+          }
         }
       ],
       "bindings": [
@@ -101,28 +129,28 @@ data:
           "vhost": "/",
           "destination": "gateway.billing",
           "destination_type": "queue",
-          "routing_key": "TenantPaymentConfirmedEvent"
-        },
-        {
-          "source": "billing.events",
-          "vhost": "/",
-          "destination": "gateway.billing",
-          "destination_type": "queue",
-          "routing_key": "TenantGracePeriodGrantedEvent"
+          "routing_key": ""
         },
         {
           "source": "billing.events",
           "vhost": "/",
           "destination": "auth.billing",
           "destination_type": "queue",
-          "routing_key": "TenantPaymentConfirmedEvent"
+          "routing_key": ""
         },
         {
-          "source": "billing.events",
+          "source": "tenant.deletion",
           "vhost": "/",
-          "destination": "auth.billing",
+          "destination": "auth.deletion",
           "destination_type": "queue",
-          "routing_key": "TenantGracePeriodGrantedEvent"
+          "routing_key": ""
+        },
+        {
+          "source": "tenant.deletion",
+          "vhost": "/",
+          "destination": "crm.deletion",
+          "destination_type": "queue",
+          "routing_key": ""
         },
         {
           "source": "billing.events.dlx",

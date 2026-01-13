@@ -1,30 +1,25 @@
-# Acesse https://aka.ms/customizecontainer para saber como personalizar seu contêiner de depuração e como o Visual Studio usa este Dockerfile para criar suas imagens para uma depuração mais rápida.
-
-# Esta fase é usada durante a execução no VS no modo rápido (Padrão para a configuração de Depuração)
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
-USER $APP_UID
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
-
-# Esta fase é usada para compilar o projeto de serviço
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-ARG BUILD_CONFIGURATION=Release
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["Billing.Api/Billing.Api.csproj", "Billing.Api/"]
-RUN dotnet restore "./Billing.Api/Billing.Api.csproj"
+
+# Copy csproj files first for better caching
+COPY Shared/Shared.Kernel/Shared.Kernel.csproj Shared/Shared.Kernel/
+COPY Shared/Shared.Contracts/Shared.Contracts.csproj Shared/Shared.Contracts/
+COPY Shared/Shared.BuildingBlocks/Shared.BuildingBlocks.csproj Shared/Shared.BuildingBlocks/
+COPY Services/Billing/Billing.Domain/Billing.Domain.csproj Services/Billing/Billing.Domain/
+COPY Services/Billing/Billing.Data/Billing.Data.csproj Services/Billing/Billing.Data/
+COPY Services/Billing/Billing.Api/Billing.Api.csproj Services/Billing/Billing.Api/
+
+RUN dotnet restore Services/Billing/Billing.Api/Billing.Api.csproj
+
+# Copy everything and build
 COPY . .
-WORKDIR "/src/Billing.Api"
-RUN dotnet build "./Billing.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet publish Services/Billing/Billing.Api/Billing.Api.csproj -c Release -o /app/publish
 
-# Esta fase é usada para publicar o projeto de serviço a ser copiado para a fase final
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Billing.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-# Esta fase é usada na produção ou quando executada no VS no modo normal (padrão quando não está usando a configuração de Depuração)
-FROM base AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
+
+ENV ASPNETCORE_URLS=http://+:5002
+EXPOSE 5002
+
 ENTRYPOINT ["dotnet", "Billing.Api.dll"]
